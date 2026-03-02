@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "593802559816",
+    "project_id": "focusfeed-70ae9",
+    "storage_bucket": "focusfeed-70ae9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:593802559816:android:433f0058e2721837e5737d",
+        "android_client_info": {
+          "package_name": "com.example.focusfeed"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "593802559816-2kon1hhjt5moad1r4cl80i71snc67hna.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBxjOJ6BYNyuCLvD12dzdh0s_b4qm67HIQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "593802559816-2kon1hhjt5moad1r4cl80i71snc67hna.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

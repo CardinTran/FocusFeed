@@ -388,15 +388,6 @@ git push origin feat/card-swipe-feed
 
 ---
 
-## Deliverables Created
-
-- `FocusFeed_Pitch_Deck.pptx` — 13-slide investor/stakeholder pitch deck
-- `FocusFeed_Class_Presentation.pptx` — 15-slide class presentation (5-person format with speaker notes)
-- `FocusFeed_Tester_DevOps_Guide.md` — Onboarding guide for product tester/DevOps team member
-- `FocusFeed_Design_System.md` — Full design system and Figma setup guide with colors, typography, components, and screen list
-
----
-
 ## Notes for Claude
 
 When helping with this project:

@@ -161,19 +161,6 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                         label: const Text("Google", style: TextStyle(color: Colors.white)),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Colors.white24),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        onPressed: () {},
-                        icon: const Icon(Icons.apple, color: Colors.white),
-                        label: const Text("Apple", style: TextStyle(color: Colors.white)),
-                      ),
-                    ),
                   ],
                 ),
 

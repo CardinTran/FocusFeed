@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:focusfeed/auth_services.dart';
+import 'package:focusfeed/features/auth/services/auth_service.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginScreenState extends State<LoginScreen> {
   bool _showPassword = false;
   final emailController = TextEditingController();
   final passwordController = TextEditingController();

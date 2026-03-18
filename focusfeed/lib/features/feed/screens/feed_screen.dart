@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:focusfeed/auth_services.dart';
-import 'welcome_page.dart';
+import 'package:focusfeed/features/auth/services/auth_service.dart';
+import 'package:focusfeed/features/auth/screens/welcome_screen.dart';
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+class FeedScreen extends StatelessWidget {
+  const FeedScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +25,10 @@ class HomePage extends StatelessWidget {
                 await auth.signOut();
                 if (context.mounted) {
                   Navigator.pushAndRemoveUntil(
-                    context, 
-                    MaterialPageRoute(builder: (context) => const WelcomePage()),
-                    (route) => false,);
+                    context,
+                    MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+                    (route) => false,
+                  );
                 }
               },
               child: const Text("Log Out"),

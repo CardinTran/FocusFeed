@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'create_account_page.dart';
-import 'login_page.dart';
+import 'package:focusfeed/features/auth/screens/create_account_screen.dart';
+import 'package:focusfeed/features/auth/screens/login_screen.dart';
 
-class WelcomePage extends StatelessWidget {
-  const WelcomePage({super.key});
+class WelcomeScreen extends StatelessWidget {
+  const WelcomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -83,26 +83,24 @@ class WelcomePage extends StatelessWidget {
 
             // Get Started Button
             ElevatedButton(
-              style: ElevatedButton.styleFrom(                
-                backgroundColor: Color.fromRGBO(133, 90, 251, 1),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromRGBO(133, 90, 251, 1),
                 minimumSize: const Size(double.infinity, 50),
               ),
               onPressed: () {
                 Navigator.push(
                   context,
-                    MaterialPageRoute(builder: (context) => const CreateAccountPage()),
-                  );
-                },
+                  MaterialPageRoute(builder: (context) => const CreateAccountScreen()),
+                );
+              },
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text("Get Started",
-                  style: TextStyle(
-                    color:Colors.white,
-                   ),
+                    style: TextStyle(color: Colors.white),
                   ),
                   SizedBox(width: 8),
-                  Icon(Icons.arrow_forward, size: 18, color: Colors.white),                  
+                  Icon(Icons.arrow_forward, size: 18, color: Colors.white),
                 ],
               ),
             ),
@@ -116,8 +114,8 @@ class WelcomePage extends StatelessWidget {
               ),
               onPressed: () {
                 Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginPage()),
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
                 );
               },
               child: const Text(

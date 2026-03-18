@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:focusfeed/auth_services.dart';
+import 'package:focusfeed/features/auth/services/auth_service.dart';
 
-class CreateAccountPage extends StatefulWidget {
-  const CreateAccountPage({super.key});
+class CreateAccountScreen extends StatefulWidget {
+  const CreateAccountScreen({super.key});
 
   @override
-  State<CreateAccountPage> createState() => _CreateAccountPageState();
+  State<CreateAccountScreen> createState() => _CreateAccountScreenState();
 }
 
-class _CreateAccountPageState extends State<CreateAccountPage> {
+class _CreateAccountScreenState extends State<CreateAccountScreen> {
   bool _showPassword = false;
   bool _showConfirmPassword = false;
   final nameController = TextEditingController();
@@ -77,7 +77,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                     ),
                   ),
                 ),
-              
+
                 const SizedBox(height: 30),
 
                 // Full Name
@@ -148,7 +148,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                       return;
                     }
                     final result = await auth.signUpWithEmail(
-                      emailController.text.trim(), 
+                      emailController.text.trim(),
                       passwordController.text,
                       );
                       if (result != null && mounted){
@@ -192,7 +192,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                           if (result != null && mounted){
                             Navigator.pushReplacementNamed(context, '/home');
                           }
-                        },  
+                        },
                         icon: const Text("G", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                         label: const Text("Google", style: TextStyle(color: Colors.white)),
                       ),

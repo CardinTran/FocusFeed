@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'pages/welcome_page.dart'; // add this
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'pages/home_page.dart';
-import 'pages/create_account_page.dart';
+import 'features/auth/screens/welcome_screen.dart';
+import 'features/auth/screens/create_account_screen.dart';
+import 'features/feed/screens/feed_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,12 +20,11 @@ class FocusFeed extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: WelcomePage(),
+      home: const WelcomeScreen(),
       routes: {
-        '/home': (context) => const HomePage(),
-        '/signup': (context) => const CreateAccountPage(),
+        '/home': (context) => const FeedScreen(),
+        '/signup': (context) => const CreateAccountScreen(),
       },
     );
   }
 }
-

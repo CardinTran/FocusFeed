@@ -40,10 +40,7 @@ class WelcomeScreen extends StatelessWidget {
             const Text(
               "Replace the Scroll.\nReclaim Your Time.",
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 16,
-              ),
+              style: TextStyle(color: Colors.white70, fontSize: 16),
             ),
             const SizedBox(height: 30),
 
@@ -90,15 +87,15 @@ class WelcomeScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const CreateAccountScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const CreateAccountScreen(),
+                  ),
                 );
               },
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Get Started",
-                    style: TextStyle(color: Colors.white),
-                  ),
+                  Text("Get Started", style: TextStyle(color: Colors.white)),
                   SizedBox(width: 8),
                   Icon(Icons.arrow_forward, size: 18, color: Colors.white),
                 ],
@@ -121,6 +118,19 @@ class WelcomeScreen extends StatelessWidget {
               child: const Text(
                 "I Already Have an Account",
                 style: TextStyle(color: Color.fromRGBO(133, 90, 251, 1)),
+              ),
+            ),
+
+            Positioned(
+              bottom: 30,
+              right: 20,
+              child: FloatingActionButton(
+                mini: true,
+                backgroundColor: Colors.grey,
+                onPressed: () {
+                  Navigator.pushReplacementNamed(context, '/home');
+                },
+                child: const Icon(Icons.bug_report),
               ),
             ),
           ],
@@ -156,10 +166,7 @@ class _FeatureCard extends StatelessWidget {
           children: [
             Icon(icon, color: iconColor, size: 32),
             const SizedBox(height: 10),
-            Text(
-              label,
-              style: TextStyle(color: iconColor, fontSize: 13),
-            ),
+            Text(label, style: TextStyle(color: iconColor, fontSize: 13)),
           ],
         ),
       ),

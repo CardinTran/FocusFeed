@@ -141,9 +141,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       emailController.text.trim(),
                       passwordController.text,
                       );
-                      if(result != null && mounted){
-                        Navigator.pushReplacementNamed(context, '/home');
-                      }
+                      if (result == null) return;
+                      if (!context.mounted) return;
+                      Navigator.pushReplacementNamed(context, '/home');
                   },
                   child: const Text(
                     "Login",
@@ -177,9 +177,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   onPressed: () async{
                     final result = await auth.signInWithGoogle();
-                    if (result != null && mounted){
-                      Navigator.pushReplacementNamed(context, '/home');
-                    }
+                    if (result == null) return;
+                    if (!context.mounted) return;
+                    Navigator.pushReplacementNamed(context, '/home');
                   },
                   icon: const Text("G", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                   label: const Text("Google", style: TextStyle(color: Colors.white)),

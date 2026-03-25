@@ -27,11 +27,26 @@ migrate_working_dir/
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
+.flutter-plugins
 .flutter-plugins-dependencies
+# Duplicate files created by tooling (e.g. "Flutter 2.podspec")
+*[0-9].podspec
+*[0-9].xcconfig
+*[0-9].sh
+.flutter-plugins-dependencies 2
 .pub-cache/
 .pub/
 /build/
 /coverage/
+
+# iOS CocoaPods
+ios/Pods/
+ios/Podfile.lock
+
+# iOS Flutter auto-generated
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/Flutter/Flutter.podspec
 
 # Symbolication related
 app.*.symbols

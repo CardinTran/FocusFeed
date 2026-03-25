@@ -144,16 +144,16 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   ),
                   onPressed: () async{
                     if(passwordController.text != confirmPasswordController.text){
-                      print("Password don't match");
+                      debugPrint("Passwords don't match");
                       return;
                     }
                     final result = await auth.signUpWithEmail(
                       emailController.text.trim(),
                       passwordController.text,
                       );
-                      if (result != null && mounted){
-                        Navigator.pushReplacementNamed(context, '/home');
-                      }
+                      if (result == null) return;
+                      if (!context.mounted) return;
+                      Navigator.pushReplacementNamed(context, '/home');
                   },
                   child: const Text(
                     "Create Account",
@@ -189,9 +189,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         ),
                         onPressed: () async{
                           final result = await auth.signInWithGoogle();
-                          if (result != null && mounted){
-                            Navigator.pushReplacementNamed(context, '/home');
-                          }
+                          if (result == null) return;
+                          if (!context.mounted) return;
+                          Navigator.pushReplacementNamed(context, '/home');
                         },
                         icon: const Text("G", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                         label: const Text("Google", style: TextStyle(color: Colors.white)),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:focusfeed/features/screens/feed_item.dart';
-import 'package:focusfeed/features/screens/feed_screen.dart';
+import 'package:focusfeed/features/screens/feed/feed_item.dart';
+import 'package:focusfeed/features/screens/feed/widgets/article_post_card.dart';
+import 'package:focusfeed/features/screens/feed/widgets/flashcard_post_card.dart';
 
 class SavedScreen extends StatelessWidget {
   final List<FeedItem> items;
@@ -53,9 +54,19 @@ class SavedScreen extends StatelessWidget {
                       scrollDirection: Axis.vertical,
                       itemCount: savedItems.length,
                       itemBuilder: (context, index) {
-                        return FeedPostCard(
-                          item: savedItems[index],
-                          onChanged: onUpdate,
+                        final item = savedItems[index];
+
+                        return Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                          child: item.type == FeedItemType.flashcard
+                              ? FlashcardPostCard(
+                                  item: item,
+                                  onChanged: onUpdate,
+                                )
+                              : ArticlePostCard(
+                                  item: item,
+                                  onChanged: onUpdate,
+                                ),
                         );
                       },
                     ),

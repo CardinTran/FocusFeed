@@ -3,7 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'features/auth/screens/welcome_screen.dart';
 import 'features/auth/screens/create_account_screen.dart';
-import 'features/screens/main_nav_screen.dart';
+import 'features/screens/nav/main_nav_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

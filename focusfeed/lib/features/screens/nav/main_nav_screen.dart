@@ -1,6 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:focusfeed/features/screens/feed/feed_item.dart';
 import 'package:focusfeed/features/screens/feed/feed_screen.dart';
+import 'package:focusfeed/features/screens/import/import_repository.dart';
 import 'package:focusfeed/features/screens/import/import_screen.dart';
 import 'package:focusfeed/features/screens/library/library_screen.dart';
 import 'package:focusfeed/features/screens/nav/nav_tab.dart';
@@ -18,86 +20,100 @@ class MainNavScreen extends StatefulWidget {
 class _MainNavScreenState extends State<MainNavScreen> {
   NavTab _selectedTab = NavTab.feed;
 
-  final List<FeedItem> _items = [
-    FeedItem.flashcard(
-      category: "Bathroom",
-      categoryColor: const Color(0xFF7B61FF),
-      categoryBg: const Color(0x337B61FF),
-      deckTitle: "FLASHCARD",
-      question: "Poo Poo Pee Pee?",
-      answer: "Restroom Time",
-      deckIcon: Icons.layers_outlined,
-    ),
-    FeedItem.flashcard(
-      category: "Funny",
-      categoryColor: const Color(0xFFFF9F6E),
-      categoryBg: const Color(0x33FF9F6E),
-      deckTitle: "FLASHCARD",
-      question: "YERDDDD",
-      answer: "YUHHHHHH",
-      deckIcon: Icons.layers_outlined,
-    ),
-    FeedItem.flashcard(
-      category: "Gym",
-      categoryColor: const Color(0xFFFF6B81),
-      categoryBg: const Color(0x33FF6B81),
-      deckTitle: "FLASHCARD",
-      question: "GYMMMM",
-      answer: "LEARN THE WAYS OF THE BIG BACK",
-      deckIcon: Icons.layers_outlined,
-    ),
-  ];
-
-  void _refresh() {
-    setState(() {});
-  }
-
   void _selectTab(NavTab tab) {
+    if (_selectedTab == tab) return;
+
     setState(() {
       _selectedTab = tab;
     });
   }
 
   Future<void> _openImportScreen() async {
-    final importedItems = await Navigator.push<List<FeedItem>>(
+    await Navigator.push<List<FeedItem>>(
       context,
       MaterialPageRoute(builder: (context) => const ImportScreen()),
     );
-
-    if (!mounted) return;
-
-    if (importedItems != null && importedItems.isNotEmpty) {
-      setState(() {
-        _items.addAll(importedItems);
-      });
-    }
   }
 
-  Widget _buildCurrentScreen() {
+  int get _selectedIndex {
     switch (_selectedTab) {
       case NavTab.feed:
-        return FeedScreen(items: _items, onUpdate: _refresh);
+        return 0;
       case NavTab.saved:
-        return SavedScreen(items: _items, onUpdate: _refresh);
+        return 1;
       case NavTab.library:
-        return const LibraryScreen();
+        return 2;
       case NavTab.settings:
-        return const SettingsScreen();
+        return 3;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _buildCurrentScreen(),
-      bottomNavigationBar: CustomBottomNavBar(
-        selectedTab: _selectedTab,
-        onFeedTap: () => _selectTab(NavTab.feed),
-        onSavedTap: () => _selectTab(NavTab.saved),
-        onLibraryTap: () => _selectTab(NavTab.library),
-        onSettingsTap: () => _selectTab(NavTab.settings),
-        onImportTap: _openImportScreen,
-      ),
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF0B0F2A),
+        body: SafeArea(
+          child: Center(
+            child: Text(
+              'No authenticated user found.',
+              style: TextStyle(color: Colors.white70, fontSize: 18),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return StreamBuilder<List<FeedItem>>(
+      stream: ImportRepository().streamAllFeedItemsForUser(user.uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            !snapshot.hasData) {
+          return const Scaffold(
+            backgroundColor: Color(0xFF0B0F2A),
+            body: SafeArea(child: Center(child: CircularProgressIndicator())),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Scaffold(
+            backgroundColor: const Color(0xFF0B0F2A),
+            body: SafeArea(
+              child: Center(
+                child: Text(
+                  'Failed to load feed: ${snapshot.error}',
+                  style: const TextStyle(color: Colors.white70, fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          );
+        }
+
+        final items = snapshot.data ?? [];
+
+        return Scaffold(
+          body: IndexedStack(
+            index: _selectedIndex,
+            children: [
+              FeedScreen(items: items, onUpdate: () {}),
+              SavedScreen(items: items, onUpdate: () {}),
+              const LibraryScreen(),
+              const SettingsScreen(),
+            ],
+          ),
+          bottomNavigationBar: CustomBottomNavBar(
+            selectedTab: _selectedTab,
+            onFeedTap: () => _selectTab(NavTab.feed),
+            onSavedTap: () => _selectTab(NavTab.saved),
+            onLibraryTap: () => _selectTab(NavTab.library),
+            onSettingsTap: () => _selectTab(NavTab.settings),
+            onImportTap: _openImportScreen,
+          ),
+        );
+      },
     );
   }
 }

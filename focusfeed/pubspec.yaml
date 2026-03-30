@@ -14,7 +14,8 @@ dependencies:
   # Firebase dependencies
   firebase_core: ^4.6.0
   firebase_auth: ^6.3.0
-  google_sign_in: ^6.2.0  # For Google authentication
+  cloud_firestore: ^6.0.3
+  google_sign_in: ^7.2.0  # For Google authentication
   sign_in_with_apple: ^7.0.1  # For Apple authentication (iOS only)
 
 dev_dependencies:
@@ -24,4 +25,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-

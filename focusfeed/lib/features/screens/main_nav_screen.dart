@@ -126,16 +126,16 @@ class _CustomBottomNavBar extends StatelessWidget {
                 const SizedBox(width: 72),
                 Expanded(
                   child: _NavItem(
-                    icon: Icons.folder,
-                    label: 'Library',
+                    icon: Icons.view_stream,
+                    label: 'Decks',
                     isSelected: selectedIndex == 2,
                     onTap: onLibraryTap,
                   ),
                 ),
                 Expanded(
                   child: _NavItem(
-                    icon: Icons.settings,
-                    label: 'Settings',
+                    icon: Icons.person,
+                    label: 'Profile',
                     isSelected: selectedIndex == 3,
                     onTap: onSettingsTap,
                   ),

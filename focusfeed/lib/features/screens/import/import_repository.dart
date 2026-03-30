@@ -46,6 +46,29 @@ class ImportRepository {
     return importRef.id;
   }
 
+  Future<void> deleteImport({
+    required String userId,
+    required String importId,
+  }) async {
+    final importRef = firestore
+        .collection('users')
+        .doc(userId)
+        .collection('imports')
+        .doc(importId);
+
+    final cardsSnapshot = await importRef.collection('cards').get();
+
+    final batch = firestore.batch();
+
+    for (final doc in cardsSnapshot.docs) {
+      batch.delete(doc.reference);
+    }
+
+    batch.delete(importRef);
+
+    await batch.commit();
+  }
+
   Future<void> updateSaved({
     required String userId,
     required String importId,

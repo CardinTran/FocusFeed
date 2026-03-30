@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:focusfeed/features/auth/services/auth_service.dart';
 import 'firebase_options.dart';
 import 'features/auth/screens/app_entry_screen.dart';
 import 'features/auth/screens/create_account_screen.dart';
@@ -9,6 +10,7 @@ import 'features/screens/nav/main_nav_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await AuthServices().initGoogleSignIn();
   runApp(const FocusFeed());
 }
 

@@ -1,11 +1,16 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthServices {
-  final auth = FirebaseAuth.instance;
+  final FirebaseAuth auth = FirebaseAuth.instance;
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
+
+  Future<void> initGoogleSignIn() async {
+    await _googleSignIn.initialize();
+  }
 
   // Sign up with email/password
   Future<UserCredential?> signUpWithEmail(
@@ -19,36 +24,48 @@ class AuthServices {
         password: password,
       );
 
-      final trimmedName = displayName?.trim();
-      if (trimmedName != null && trimmedName.isNotEmpty) {
-        await credential.user?.updateDisplayName(trimmedName);
-        await credential.user?.reload();
+      final user = credential.user;
+      if (user != null) {
+        final trimmedName = displayName?.trim();
+        if (trimmedName != null && trimmedName.isNotEmpty) {
+          await user.updateDisplayName(trimmedName);
+          await user.reload();
+        }
+
+        await _createUserDocument(auth.currentUser ?? user);
       }
 
       return credential;
     } on FirebaseAuthException catch (e) {
       debugPrint(e.message);
       return null;
+    } catch (e) {
+      debugPrint(e.toString());
+      return null;
     }
   }
 
   // Sign in with email/password
   Future<UserCredential?> signInWithEmail(String email, String password) async {
-  Future<UserCredential?> signInWithEmail(String email, String password) async {
     try {
-      return await auth.signInWithEmailAndPassword(
+      final credential = await auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
+
+      final user = credential.user;
+      if (user != null) {
+        await _createUserDocument(user);
+      }
+
+      return credential;
     } on FirebaseAuthException catch (e) {
       debugPrint(e.message);
       return null;
+    } catch (e) {
+      debugPrint(e.toString());
+      return null;
     }
-  }
-
-  // Call this once during app startup before Google sign-in is used
-  Future<void> initGoogleSignIn() async {
-    await _googleSignIn.initialize();
   }
 
   // Google Sign in
@@ -60,13 +77,22 @@ class AuthServices {
         idToken: googleUser.authentication.idToken,
       );
 
-      return await auth.signInWithCredential(credential);
+      final userCredential = await auth.signInWithCredential(credential);
+
+      final user = userCredential.user;
+      if (user != null) {
+        await _createUserDocument(user);
+      }
+
+      return userCredential;
+    } on FirebaseAuthException catch (e) {
+      debugPrint(e.message);
+      return null;
     } catch (e) {
-      debugPrint('Google Sign-In Error: $e');
+      debugPrint(e.toString());
       return null;
     }
   }
-
 
   // Sign out
   Future<void> signOut() async {
@@ -74,24 +100,21 @@ class AuthServices {
     await auth.signOut();
   }
 
-
   // Who is logged in right now?
   User? get currentUser => auth.currentUser;
 
   // A stream that fires whenever login state changes
   Stream<User?> get authStateChanges => auth.authStateChanges();
 
-  final firestore = FirebaseFirestore.instance;
-
   Future<void> _createUserDocument(User user) async {
     final userDoc = firestore.collection('users').doc(user.uid);
-
     final snapshot = await userDoc.get();
 
     if (!snapshot.exists) {
       await userDoc.set({
         'uid': user.uid,
         'email': user.email,
+        'displayName': user.displayName,
         'createdAt': FieldValue.serverTimestamp(),
       });
     }

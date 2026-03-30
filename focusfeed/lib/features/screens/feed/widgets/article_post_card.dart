@@ -1,8 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:focusfeed/features/screens/feed/feed_item.dart';
 import 'package:focusfeed/features/screens/feed/widgets/feed_action_buttons.dart';
+import 'package:focusfeed/features/screens/import/import_repository.dart';
 
-class ArticlePostCard extends StatelessWidget {
+class ArticlePostCard extends StatefulWidget {
   final FeedItem item;
   final VoidCallback onChanged;
 
@@ -13,7 +15,64 @@ class ArticlePostCard extends StatelessWidget {
   });
 
   @override
+  State<ArticlePostCard> createState() => _ArticlePostCardState();
+}
+
+class _ArticlePostCardState extends State<ArticlePostCard> {
+  bool _isUpdating = false;
+
+  Future<void> _toggleLearned() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || widget.item.importId == null || _isUpdating) return;
+
+    setState(() {
+      _isUpdating = true;
+    });
+
+    try {
+      await ImportRepository().updateLearned(
+        userId: user.uid,
+        importId: widget.item.importId!,
+        cardId: widget.item.id,
+        learned: !widget.item.learned,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUpdating = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _toggleSaved() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || widget.item.importId == null || _isUpdating) return;
+
+    setState(() {
+      _isUpdating = true;
+    });
+
+    try {
+      await ImportRepository().updateSaved(
+        userId: user.uid,
+        importId: widget.item.importId!,
+        cardId: widget.item.id,
+        saved: !widget.item.saved,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUpdating = false;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final item = widget.item;
+
     return Stack(
       children: [
         Positioned.fill(
@@ -33,22 +92,16 @@ class ArticlePostCard extends StatelessWidget {
                 icon: item.learned ? Icons.check_circle : Icons.school_outlined,
                 label: item.learned ? "Learned" : "Studying",
                 iconColor: item.learned ? Colors.greenAccent : Colors.white,
-                onTap: () {
-                  item.learned = !item.learned;
-                  onChanged();
-                },
+                onTap: _toggleLearned,
               ),
               const SizedBox(height: 18),
               RightSideActionButton(
-                icon: item.bookmarked ? Icons.bookmark : Icons.bookmark_border,
+                icon: item.saved ? Icons.bookmark : Icons.bookmark_border,
                 label: "Save",
-                iconColor: item.bookmarked
+                iconColor: item.saved
                     ? const Color.fromRGBO(133, 90, 251, 1)
                     : Colors.white,
-                onTap: () {
-                  item.bookmarked = !item.bookmarked;
-                  onChanged();
-                },
+                onTap: _toggleSaved,
               ),
             ],
           ),

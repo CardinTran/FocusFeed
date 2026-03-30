@@ -31,6 +31,21 @@ class _FeedScreenState extends State<FeedScreen> {
   void didUpdateWidget(covariant FeedScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
 
+    final latestById = {for (final item in widget.items) item.id: item};
+
+    for (int i = 0; i < _feedQueue.length; i++) {
+      final current = _feedQueue[i];
+      final updated = latestById[current.id];
+
+      if (updated != null) {
+        _feedQueue[i] = updated;
+      }
+    }
+
+    _cycleItems = _cycleItems
+        .map((item) => latestById[item.id] ?? item)
+        .toList();
+
     if (oldWidget.items.length != widget.items.length) {
       _rebuildCycle();
       _fillQueue(reset: true);

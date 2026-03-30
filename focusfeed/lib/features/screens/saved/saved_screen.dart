@@ -3,16 +3,47 @@ import 'package:focusfeed/features/screens/feed/feed_item.dart';
 import 'package:focusfeed/features/screens/feed/widgets/article_post_card.dart';
 import 'package:focusfeed/features/screens/feed/widgets/flashcard_post_card.dart';
 
-class SavedScreen extends StatelessWidget {
+class SavedScreen extends StatefulWidget {
   final List<FeedItem> items;
   final VoidCallback onUpdate;
 
   const SavedScreen({super.key, required this.items, required this.onUpdate});
 
   @override
-  Widget build(BuildContext context) {
-    final savedItems = items.where((item) => item.bookmarked).toList();
+  State<SavedScreen> createState() => _SavedScreenState();
+}
 
+class _SavedScreenState extends State<SavedScreen> {
+  late List<FeedItem> _savedItems;
+
+  @override
+  void initState() {
+    super.initState();
+    _syncSavedItems();
+  }
+
+  @override
+  void didUpdateWidget(covariant SavedScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _syncSavedItems();
+  }
+
+  void _syncSavedItems() {
+    _savedItems = widget.items.where((item) => item.saved).toList();
+  }
+
+  void _handleItemChanged(FeedItem item) {
+    setState(() {
+      if (!item.saved) {
+        _savedItems.removeWhere((savedItem) => savedItem.id == item.id);
+      }
+    });
+
+    widget.onUpdate();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0B0F2A),
       body: SafeArea(
@@ -43,7 +74,7 @@ class SavedScreen extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: savedItems.isEmpty
+              child: _savedItems.isEmpty
                   ? const Center(
                       child: Text(
                         "No saved content yet.",
@@ -52,20 +83,20 @@ class SavedScreen extends StatelessWidget {
                     )
                   : PageView.builder(
                       scrollDirection: Axis.vertical,
-                      itemCount: savedItems.length,
+                      itemCount: _savedItems.length,
                       itemBuilder: (context, index) {
-                        final item = savedItems[index];
+                        final item = _savedItems[index];
 
                         return Padding(
                           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                           child: item.type == FeedItemType.flashcard
                               ? FlashcardPostCard(
                                   item: item,
-                                  onChanged: onUpdate,
+                                  onChanged: () => _handleItemChanged(item),
                                 )
                               : ArticlePostCard(
                                   item: item,
-                                  onChanged: onUpdate,
+                                  onChanged: () => _handleItemChanged(item),
                                 ),
                         );
                       },

@@ -1,6 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:focusfeed/features/screens/feed/feed_item.dart';
 import 'package:focusfeed/features/screens/feed/widgets/feed_action_buttons.dart';
+import 'package:focusfeed/features/screens/import/import_repository.dart';
 
 class FlashcardPostCard extends StatefulWidget {
   final FeedItem item;
@@ -194,25 +196,49 @@ class _FlashcardPostCardState extends State<FlashcardPostCard>
               iconColor: widget.item.learned
                   ? Colors.greenAccent
                   : Colors.white,
-              onTap: () {
+              onTap: () async {
+                final newValue = !widget.item.learned;
+
                 setState(() {
-                  widget.item.learned = !widget.item.learned;
+                  widget.item.learned = newValue;
                 });
+
+                final user = FirebaseAuth.instance.currentUser;
+                if (user == null || widget.item.importId == null) return;
+
+                await ImportRepository().updateLearned(
+                  userId: user.uid,
+                  importId: widget.item.importId!,
+                  cardId: widget.item.id,
+                  learned: newValue,
+                );
+
                 widget.onChanged();
               },
             ),
             BottomActionButton(
-              icon: widget.item.bookmarked
-                  ? Icons.bookmark
-                  : Icons.bookmark_border,
+              icon: widget.item.saved ? Icons.bookmark : Icons.bookmark_border,
               label: "Save",
-              iconColor: widget.item.bookmarked
+              iconColor: widget.item.saved
                   ? const Color.fromRGBO(133, 90, 251, 1)
                   : Colors.white,
-              onTap: () {
+              onTap: () async {
+                final newValue = !widget.item.saved;
+
                 setState(() {
-                  widget.item.bookmarked = !widget.item.bookmarked;
+                  widget.item.saved = newValue;
                 });
+
+                final user = FirebaseAuth.instance.currentUser;
+                if (user == null || widget.item.importId == null) return;
+
+                await ImportRepository().updateSaved(
+                  userId: user.uid,
+                  importId: widget.item.importId!,
+                  cardId: widget.item.id,
+                  saved: newValue,
+                );
+
                 widget.onChanged();
               },
             ),

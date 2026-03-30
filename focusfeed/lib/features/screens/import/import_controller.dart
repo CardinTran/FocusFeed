@@ -69,7 +69,10 @@ class ImportController {
       cards: parsedCards,
     );
 
-    final items = await repository.loadFeedItemsFromImport(importId);
+    final items = await repository.loadFeedItemsFromImport(
+      userId: user.uid,
+      importId: importId,
+    );
 
     return ImportResult(
       items: items,

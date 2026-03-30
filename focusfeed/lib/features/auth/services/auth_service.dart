@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthServices {
   final auth = FirebaseAuth.instance;
@@ -32,6 +33,7 @@ class AuthServices {
   }
 
   // Sign in with email/password
+  Future<UserCredential?> signInWithEmail(String email, String password) async {
   Future<UserCredential?> signInWithEmail(String email, String password) async {
     try {
       return await auth.signInWithEmailAndPassword(
@@ -65,15 +67,33 @@ class AuthServices {
     }
   }
 
+
   // Sign out
   Future<void> signOut() async {
     await _googleSignIn.signOut();
     await auth.signOut();
   }
 
+
   // Who is logged in right now?
   User? get currentUser => auth.currentUser;
 
   // A stream that fires whenever login state changes
   Stream<User?> get authStateChanges => auth.authStateChanges();
+
+  final firestore = FirebaseFirestore.instance;
+
+  Future<void> _createUserDocument(User user) async {
+    final userDoc = firestore.collection('users').doc(user.uid);
+
+    final snapshot = await userDoc.get();
+
+    if (!snapshot.exists) {
+      await userDoc.set({
+        'uid': user.uid,
+        'email': user.email,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    }
+  }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:focusfeed/features/auth/screens/app_entry_screen.dart';
 import 'package:focusfeed/features/auth/services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -15,7 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final auth = AuthServices();
 
   @override
-  void dispose(){
+  void dispose() {
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
@@ -38,9 +39,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.arrow_back, color: Color.fromRGBO(133, 90, 251, 1), size: 18),
+                      Icon(
+                        Icons.arrow_back,
+                        color: Color.fromRGBO(133, 90, 251, 1),
+                        size: 18,
+                      ),
                       SizedBox(width: 4),
-                      Text("Back", style: TextStyle(color: Color.fromRGBO(133, 90, 251, 1))),
+                      Text(
+                        "Back",
+                        style: TextStyle(
+                          color: Color.fromRGBO(133, 90, 251, 1),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -85,14 +95,22 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: InputDecoration(
                     hintText: "Email",
                     hintStyle: const TextStyle(color: Colors.white38),
-                    prefixIcon: const Icon(Icons.email_outlined, color: Colors.white38, size: 20),
+                    prefixIcon: const Icon(
+                      Icons.email_outlined,
+                      color: Colors.white38,
+                      size: 20,
+                    ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color.fromRGBO(133, 90, 251, 0.4)),
+                      borderSide: const BorderSide(
+                        color: Color.fromRGBO(133, 90, 251, 0.4),
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color.fromRGBO(133, 90, 251, 1)),
+                      borderSide: const BorderSide(
+                        color: Color.fromRGBO(133, 90, 251, 1),
+                      ),
                     ),
                   ),
                 ),
@@ -107,22 +125,33 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: InputDecoration(
                     hintText: "Password",
                     hintStyle: const TextStyle(color: Colors.white38),
-                    prefixIcon: const Icon(Icons.lock_outline, color: Colors.white38, size: 20),
+                    prefixIcon: const Icon(
+                      Icons.lock_outline,
+                      color: Colors.white38,
+                      size: 20,
+                    ),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _showPassword ? Icons.visibility_off_outlined : Icons.remove_red_eye_outlined,
+                        _showPassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.remove_red_eye_outlined,
                         color: Colors.white38,
                         size: 20,
                       ),
-                      onPressed: () => setState(() => _showPassword = !_showPassword),
+                      onPressed: () =>
+                          setState(() => _showPassword = !_showPassword),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color.fromRGBO(133, 90, 251, 0.4)),
+                      borderSide: const BorderSide(
+                        color: Color.fromRGBO(133, 90, 251, 0.4),
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color.fromRGBO(133, 90, 251, 1)),
+                      borderSide: const BorderSide(
+                        color: Color.fromRGBO(133, 90, 251, 1),
+                      ),
                     ),
                   ),
                 ),
@@ -134,20 +163,32 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromRGBO(133, 90, 251, 1),
                     minimumSize: const Size(double.infinity, 52),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  onPressed: () async{
+                  onPressed: () async {
                     final result = await auth.signInWithEmail(
                       emailController.text.trim(),
                       passwordController.text,
-                      );
-                      if (result == null) return;
-                      if (!context.mounted) return;
-                      Navigator.pushReplacementNamed(context, '/home');
+                    );
+                    if (result == null) return;
+                    if (!context.mounted) return;
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AppEntryScreen(),
+                      ),
+                      (_) => false,
+                    );
                   },
                   child: const Text(
                     "Login",
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
                 ),
 
@@ -159,7 +200,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     const Expanded(child: Divider(color: Colors.white24)),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Text("Or continue with", style: TextStyle(color: Colors.white38, fontSize: 13)),
+                      child: Text(
+                        "Or continue with",
+                        style: TextStyle(color: Colors.white38, fontSize: 13),
+                      ),
                     ),
                     const Expanded(child: Divider(color: Colors.white24)),
                   ],
@@ -173,16 +217,34 @@ class _LoginScreenState extends State<LoginScreen> {
                     side: const BorderSide(color: Colors.white24),
                     minimumSize: const Size(double.infinity, 52),
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  onPressed: () async{
+                  onPressed: () async {
                     final result = await auth.signInWithGoogle();
                     if (result == null) return;
                     if (!context.mounted) return;
-                    Navigator.pushReplacementNamed(context, '/home');
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AppEntryScreen(),
+                      ),
+                      (_) => false,
+                    );
                   },
-                  icon: const Text("G", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                  label: const Text("Google", style: TextStyle(color: Colors.white)),
+                  icon: const Text(
+                    "G",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  label: const Text(
+                    "Google",
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
 
                 const SizedBox(height: 20),
@@ -198,7 +260,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           TextSpan(
                             text: "Sign Up",
-                            style: TextStyle(color: Color.fromRGBO(133, 90, 251, 1), fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              color: Color.fromRGBO(133, 90, 251, 1),
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       ),

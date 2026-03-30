@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:focusfeed/features/auth/screens/app_entry_screen.dart';
 import 'package:focusfeed/features/auth/services/auth_service.dart';
+import 'package:focusfeed/features/screens/profile/screens/profile_setup_screen.dart';
 
 class CreateAccountScreen extends StatefulWidget {
   const CreateAccountScreen({super.key});
@@ -18,7 +20,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   final auth = AuthServices();
 
   @override
-  void dispose(){
+  void dispose() {
     nameController.dispose();
     emailController.dispose();
     passwordController.dispose();
@@ -43,9 +45,18 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.arrow_back, color: Color.fromRGBO(133, 90, 251, 1), size: 18),
+                      Icon(
+                        Icons.arrow_back,
+                        color: Color.fromRGBO(133, 90, 251, 1),
+                        size: 18,
+                      ),
                       SizedBox(width: 4),
-                      Text("Back", style: TextStyle(color: Color.fromRGBO(133, 90, 251, 1))),
+                      Text(
+                        "Back",
+                        style: TextStyle(
+                          color: Color.fromRGBO(133, 90, 251, 1),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -107,11 +118,14 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   controller: passwordController,
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _showPassword ? Icons.visibility_off_outlined : Icons.remove_red_eye_outlined,
+                      _showPassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.remove_red_eye_outlined,
                       color: Colors.white38,
                       size: 20,
                     ),
-                    onPressed: () => setState(() => _showPassword = !_showPassword),
+                    onPressed: () =>
+                        setState(() => _showPassword = !_showPassword),
                   ),
                 ),
 
@@ -125,11 +139,15 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   controller: confirmPasswordController,
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _showConfirmPassword ? Icons.visibility_off_outlined : Icons.remove_red_eye_outlined,
+                      _showConfirmPassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.remove_red_eye_outlined,
                       color: Colors.white38,
                       size: 20,
                     ),
-                    onPressed: () => setState(() => _showConfirmPassword = !_showConfirmPassword),
+                    onPressed: () => setState(
+                      () => _showConfirmPassword = !_showConfirmPassword,
+                    ),
                   ),
                 ),
 
@@ -140,24 +158,37 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromRGBO(133, 90, 251, 1),
                     minimumSize: const Size(double.infinity, 52),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  onPressed: () async{
-                    if(passwordController.text != confirmPasswordController.text){
+                  onPressed: () async {
+                    if (passwordController.text !=
+                        confirmPasswordController.text) {
                       debugPrint("Passwords don't match");
                       return;
                     }
                     final result = await auth.signUpWithEmail(
                       emailController.text.trim(),
                       passwordController.text,
-                      );
-                      if (result == null) return;
-                      if (!context.mounted) return;
-                      Navigator.pushReplacementNamed(context, '/home');
+                      displayName: nameController.text,
+                    );
+                    if (result == null) return;
+                    if (!context.mounted) return;
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ProfileSetupScreen(),
+                      ),
+                    );
                   },
                   child: const Text(
                     "Create Account",
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
                 ),
 
@@ -169,7 +200,10 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     const Expanded(child: Divider(color: Colors.white24)),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Text("Or continue with", style: TextStyle(color: Colors.white38, fontSize: 13)),
+                      child: Text(
+                        "Or continue with",
+                        style: TextStyle(color: Colors.white38, fontSize: 13),
+                      ),
                     ),
                     const Expanded(child: Divider(color: Colors.white24)),
                   ],
@@ -185,16 +219,34 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: Colors.white24),
                           padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                        onPressed: () async{
+                        onPressed: () async {
                           final result = await auth.signInWithGoogle();
                           if (result == null) return;
                           if (!context.mounted) return;
-                          Navigator.pushReplacementNamed(context, '/home');
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AppEntryScreen(),
+                            ),
+                            (_) => false,
+                          );
                         },
-                        icon: const Text("G", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                        label: const Text("Google", style: TextStyle(color: Colors.white)),
+                        icon: const Text(
+                          "G",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        label: const Text(
+                          "Google",
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
                     ),
                   ],
@@ -213,7 +265,10 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         children: [
                           TextSpan(
                             text: "Login",
-                            style: TextStyle(color: Color.fromRGBO(133, 90, 251, 1), fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              color: Color.fromRGBO(133, 90, 251, 1),
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       ),
@@ -260,7 +315,9 @@ class _InputField extends StatelessWidget {
         suffixIcon: suffixIcon,
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color.fromRGBO(133, 90, 251, 0.4)),
+          borderSide: const BorderSide(
+            color: Color.fromRGBO(133, 90, 251, 0.4),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

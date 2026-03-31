@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:focusfeed/features/screens/import/import_controller.dart';
-import 'package:focusfeed/features/screens/import/widgets/import_format_card.dart';
-import 'package:focusfeed/features/screens/import/widgets/import_header_card.dart';
-import 'package:focusfeed/features/screens/import/widgets/import_status_section.dart';
+import 'package:focusfeed/features/import/import_controller.dart';
+import 'package:focusfeed/features/import/widgets/import_format_card.dart';
+import 'package:focusfeed/features/import/widgets/import_header_card.dart';
+import 'package:focusfeed/features/import/widgets/import_status_section.dart';
 
 class ImportScreen extends StatefulWidget {
   const ImportScreen({super.key});

@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:focusfeed/features/screens/feed/feed_item.dart';
-import 'package:focusfeed/features/screens/import/parsed_flashcard.dart';
+import 'package:focusfeed/features/feed/feed_item.dart';
+import 'package:focusfeed/features/import/parsed_flashcard.dart';
 
 class ImportRepository {
   final FirebaseFirestore firestore;

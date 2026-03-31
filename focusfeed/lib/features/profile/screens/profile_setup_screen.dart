@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:focusfeed/features/auth/screens/app_entry_screen.dart';
 import 'package:focusfeed/features/auth/services/auth_service.dart';
-import 'package:focusfeed/features/screens/profile/services/profile_service.dart';
+import 'package:focusfeed/features/profile/services/profile_service.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({super.key});

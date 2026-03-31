@@ -4,8 +4,8 @@ import 'package:focusfeed/features/auth/services/auth_service.dart';
 import 'firebase_options.dart';
 import 'features/auth/screens/app_entry_screen.dart';
 import 'features/auth/screens/create_account_screen.dart';
-import 'features/screens/profile/screens/profile_setup_screen.dart';
-import 'features/screens/nav/main_nav_screen.dart';
+import 'features/profile/screens/profile_setup_screen.dart';
+import 'features/nav/main_nav_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

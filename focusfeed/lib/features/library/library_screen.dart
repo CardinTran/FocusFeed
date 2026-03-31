@@ -1,11 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:focusfeed/features/screens/import/import_repository.dart';
-import 'package:focusfeed/features/screens/library/library_controller.dart';
-import 'package:focusfeed/features/screens/library/library_deck.dart';
-import 'package:focusfeed/features/screens/library/widgets/library_dialogs.dart';
-import 'package:focusfeed/features/screens/library/widgets/deck_grid.dart';
-import 'package:focusfeed/features/screens/library/widgets/library_empty_state.dart';
+import 'package:focusfeed/features/import/import_repository.dart';
+import 'package:focusfeed/features/library/library_controller.dart';
+import 'package:focusfeed/features/library/library_deck.dart';
+import 'package:focusfeed/features/library/widgets/library_dialogs.dart';
+import 'package:focusfeed/features/library/widgets/deck_grid.dart';
+import 'package:focusfeed/features/library/widgets/library_empty_state.dart';
 
 class LibraryScreen extends StatefulWidget {
   const LibraryScreen({super.key});

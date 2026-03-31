@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:focusfeed/features/screens/feed/feed_item.dart';
-import 'package:focusfeed/features/screens/feed/widgets/article_post_card.dart';
-import 'package:focusfeed/features/screens/feed/widgets/flashcard_post_card.dart';
+import 'package:focusfeed/features/feed/feed_item.dart';
+import 'package:focusfeed/features/feed/widgets/article_post_card.dart';
+import 'package:focusfeed/features/feed/widgets/flashcard_post_card.dart';
 
 class FeedPostCard extends StatelessWidget {
   final FeedItem item;

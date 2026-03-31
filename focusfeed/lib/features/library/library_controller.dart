@@ -1,5 +1,5 @@
-import 'package:focusfeed/features/screens/library/library_deck.dart';
-import 'package:focusfeed/features/screens/library/library_repository.dart';
+import 'package:focusfeed/features/library/library_deck.dart';
+import 'package:focusfeed/features/library/library_repository.dart';
 
 class LibraryController {
   final LibraryRepository repository;

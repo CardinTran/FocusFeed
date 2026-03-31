@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:focusfeed/features/auth/screens/welcome_screen.dart';
 import 'package:focusfeed/features/auth/services/auth_service.dart';
-import 'package:focusfeed/features/screens/profile/screens/profile_setup_screen.dart';
-import 'package:focusfeed/features/screens/profile/services/profile_service.dart';
-import 'package:focusfeed/features/screens/nav/main_nav_screen.dart';
+import 'package:focusfeed/features/profile/screens/profile_setup_screen.dart';
+import 'package:focusfeed/features/profile/services/profile_service.dart';
+import 'package:focusfeed/features/nav/main_nav_screen.dart';
 
 class AppEntryScreen extends StatelessWidget {
   const AppEntryScreen({super.key});

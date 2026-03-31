@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:focusfeed/features/screens/feed/feed_item.dart';
-import 'package:focusfeed/features/screens/feed/widgets/feed_post_card.dart';
+import 'package:focusfeed/features/feed/feed_item.dart';
+import 'package:focusfeed/features/feed/widgets/feed_post_card.dart';
 
 class FeedScreen extends StatefulWidget {
   final List<FeedItem> items;

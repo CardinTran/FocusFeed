@@ -1,4 +1,4 @@
-import 'package:focusfeed/features/screens/import/parsed_flashcard.dart';
+import 'package:focusfeed/features/import/parsed_flashcard.dart';
 
 class ImportParser {
   const ImportParser();

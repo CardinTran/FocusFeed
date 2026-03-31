@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:focusfeed/features/screens/feed/feed_item.dart';
+import 'package:focusfeed/features/feed/feed_item.dart';
 
 import 'import_parser.dart';
 import 'import_repository.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:focusfeed/features/screens/nav/nav_tab.dart';
+import 'package:focusfeed/features/nav/nav_tab.dart';
 import 'import_fab_button.dart';
 import 'nav_item.dart';
 

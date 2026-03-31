@@ -1,14 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:focusfeed/features/screens/feed/feed_item.dart';
-import 'package:focusfeed/features/screens/feed/feed_screen.dart';
-import 'package:focusfeed/features/screens/import/import_repository.dart';
-import 'package:focusfeed/features/screens/import/import_screen.dart';
-import 'package:focusfeed/features/screens/library/library_screen.dart';
-import 'package:focusfeed/features/screens/nav/nav_tab.dart';
-import 'package:focusfeed/features/screens/nav/widgets/custom_bottom_nav_bar.dart';
-import 'package:focusfeed/features/screens/saved/saved_screen.dart';
-import 'package:focusfeed/features/screens/settings/settings_screen.dart';
+import 'package:focusfeed/features/feed/feed_item.dart';
+import 'package:focusfeed/features/feed/feed_screen.dart';
+import 'package:focusfeed/features/import/import_repository.dart';
+import 'package:focusfeed/features/import/import_screen.dart';
+import 'package:focusfeed/features/library/library_screen.dart';
+import 'package:focusfeed/features/nav/nav_tab.dart';
+import 'package:focusfeed/features/nav/widgets/custom_bottom_nav_bar.dart';
+import 'package:focusfeed/features/saved/saved_screen.dart';
+import 'package:focusfeed/features/settings/settings_screen.dart';
 
 class MainNavScreen extends StatefulWidget {
   const MainNavScreen({super.key});

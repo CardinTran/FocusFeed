@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:focusfeed/features/screens/feed/feed_item.dart';
-import 'package:focusfeed/features/screens/feed/widgets/feed_action_buttons.dart';
-import 'package:focusfeed/features/screens/import/import_repository.dart';
+import 'package:focusfeed/features/feed/feed_item.dart';
+import 'package:focusfeed/features/feed/widgets/feed_action_buttons.dart';
+import 'package:focusfeed/features/import/import_repository.dart';
 
 class ArticlePostCard extends StatefulWidget {
   final FeedItem item;

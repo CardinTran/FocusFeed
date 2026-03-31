@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:focusfeed/features/screens/library/library_deck.dart';
-import 'package:focusfeed/features/screens/library/widgets/deck_card.dart';
+import 'package:focusfeed/features/library/library_deck.dart';
+import 'package:focusfeed/features/library/widgets/deck_card.dart';
 
 class DeckGrid extends StatelessWidget {
   final List<LibraryDeck> decks;

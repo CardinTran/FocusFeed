@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:focusfeed/features/auth/screens/app_entry_screen.dart';
 import 'package:focusfeed/features/auth/services/auth_service.dart';
-import 'package:focusfeed/features/screens/profile/screens/profile_setup_screen.dart';
+import 'package:focusfeed/features/profile/screens/profile_setup_screen.dart';
 
 class CreateAccountScreen extends StatefulWidget {
   const CreateAccountScreen({super.key});

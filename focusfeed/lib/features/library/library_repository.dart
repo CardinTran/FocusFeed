@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:focusfeed/features/screens/library/library_deck.dart';
+import 'package:focusfeed/features/library/library_deck.dart';
 
 class LibraryRepository {
   final FirebaseFirestore firestore;

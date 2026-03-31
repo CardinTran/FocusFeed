@@ -22,10 +22,7 @@ class _MainNavScreenState extends State<MainNavScreen> {
 
   void _selectTab(NavTab tab) {
     if (_selectedTab == tab) return;
-
-    setState(() {
-      _selectedTab = tab;
-    });
+    setState(() => _selectedTab = tab);
   }
 
   Future<void> _openImportScreen() async {
@@ -43,7 +40,7 @@ class _MainNavScreenState extends State<MainNavScreen> {
         return 1;
       case NavTab.library:
         return 2;
-      case NavTab.settings:
+      case NavTab.profile:
         return 3;
     }
   }
@@ -101,7 +98,7 @@ class _MainNavScreenState extends State<MainNavScreen> {
               FeedScreen(items: items, onUpdate: () {}),
               SavedScreen(items: items, onUpdate: () {}),
               const LibraryScreen(),
-              const SettingsScreen(),
+              const ProfileScreen(),
             ],
           ),
           bottomNavigationBar: CustomBottomNavBar(
@@ -109,7 +106,7 @@ class _MainNavScreenState extends State<MainNavScreen> {
             onFeedTap: () => _selectTab(NavTab.feed),
             onSavedTap: () => _selectTab(NavTab.saved),
             onLibraryTap: () => _selectTab(NavTab.library),
-            onSettingsTap: () => _selectTab(NavTab.settings),
+            onProfileTap: () => _selectTab(NavTab.profile),
             onImportTap: _openImportScreen,
           ),
         );

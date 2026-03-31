@@ -115,6 +115,7 @@ class AuthServices {
         'uid': user.uid,
         'email': user.email,
         'displayName': user.displayName,
+        'displayNameLower': user.displayName?.toLowerCase() ?? '', 
         'createdAt': FieldValue.serverTimestamp(),
       });
     }

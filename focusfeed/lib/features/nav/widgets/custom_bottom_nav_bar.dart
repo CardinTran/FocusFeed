@@ -8,7 +8,7 @@ class CustomBottomNavBar extends StatelessWidget {
   final VoidCallback onFeedTap;
   final VoidCallback onSavedTap;
   final VoidCallback onLibraryTap;
-  final VoidCallback onSettingsTap;
+  final VoidCallback onProfileTap;
   final VoidCallback onImportTap;
 
   const CustomBottomNavBar({
@@ -17,7 +17,7 @@ class CustomBottomNavBar extends StatelessWidget {
     required this.onFeedTap,
     required this.onSavedTap,
     required this.onLibraryTap,
-    required this.onSettingsTap,
+    required this.onProfileTap,
     required this.onImportTap,
   });
 
@@ -64,10 +64,10 @@ class CustomBottomNavBar extends StatelessWidget {
                 ),
                 Expanded(
                   child: NavItem(
-                    icon: Icons.settings,
-                    label: 'Settings',
-                    isSelected: selectedTab == NavTab.settings,
-                    onTap: onSettingsTap,
+                    icon: Icons.person_outline,
+                    label: 'Profile',
+                    isSelected: selectedTab == NavTab.profile,
+                    onTap: onProfileTap,
                   ),
                 ),
               ],

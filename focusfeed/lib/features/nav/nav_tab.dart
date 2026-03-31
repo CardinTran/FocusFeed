@@ -1,1 +1,1 @@
-enum NavTab { feed, saved, library, settings }
+enum NavTab { feed, saved, library, profile }

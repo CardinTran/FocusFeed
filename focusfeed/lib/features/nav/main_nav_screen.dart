@@ -8,7 +8,7 @@ import 'package:focusfeed/features/library/library_screen.dart';
 import 'package:focusfeed/features/nav/nav_tab.dart';
 import 'package:focusfeed/features/nav/widgets/custom_bottom_nav_bar.dart';
 import 'package:focusfeed/features/saved/saved_screen.dart';
-import 'package:focusfeed/features/settings/settings_screen.dart';
+import 'package:focusfeed/features/profile/screens/profile_screen.dart';
 
 class MainNavScreen extends StatefulWidget {
   const MainNavScreen({super.key});

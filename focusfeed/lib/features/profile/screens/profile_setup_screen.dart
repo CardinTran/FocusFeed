@@ -1,9 +1,16 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:focusfeed/core/theme/app_colors.dart';
 import 'package:focusfeed/features/auth/screens/app_entry_screen.dart';
 import 'package:focusfeed/features/auth/services/auth_service.dart';
 import 'package:focusfeed/features/profile/services/profile_service.dart';
+import 'package:focusfeed/features/profile/widgets/setup_step_school.dart';
+import 'package:focusfeed/features/profile/widgets/setup_step_courses.dart';
+import 'package:focusfeed/features/profile/widgets/setup_step_preferences.dart';
 
+/// 3-step onboarding wizard shown to new users after their first login.
+/// Collects school, courses, subjects, and app preferences, then saves
+/// them to Firestore and navigates to the main app.
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({super.key});
 
@@ -12,50 +19,23 @@ class ProfileSetupScreen extends StatefulWidget {
 }
 
 class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
-  static const Color _bg = Color(0xFF0B0F2A);
-  static const Color _card = Color(0xFF151A3B);
-  static const Color _accent = Color.fromRGBO(133, 90, 251, 1);
-  static const Color _textPrimary = Colors.white;
-  static const Color _textSecondary = Colors.white70;
-
+  // Controllers
   final _pageController = PageController();
   final _schoolController = TextEditingController();
+
+  // Services
   final _authService = AuthServices();
   final _profileService = ProfileService();
 
-  final List<String> _availableCourses = const [
-    'Economics',
-    'Calculus',
-    'Statistics',
-    'Psychology',
-    'Accounting',
-    'Computer Science',
-    'Marketing',
-    'Biology',
-    'English',
-  ];
-
-  final List<String> _availableSubjects = const [
-    'Finance',
-    'Economics',
-    'Technology',
-    'AI',
-    'Biology',
-    'Chemistry',
-    'Physics',
-    'History',
-    'Literature',
-    'Psychology',
-    'Business',
-    'Math',
-  ];
-
+  // Wizard state
   final List<String> _selectedCourses = [];
   final List<String> _selectedSubjects = [];
-
   int _currentPage = 0;
   bool _notificationsEnabled = true;
   bool _autoGenerateFlashcards = true;
+
+  // True while the Firestore save is in flight — disables buttons and
+  // shows a spinner to prevent double-submission.
   bool _isSaving = false;
 
   @override
@@ -65,6 +45,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     super.dispose();
   }
 
+  // ── Navigation ─────────────────────────────────────────────────────────────
+
+  /// Validates the current page then moves forward, or triggers save on
+  /// the last page.
   void _nextPage() {
     if (_currentPage == 0 && _schoolController.text.trim().isEmpty) {
       _showMessage('Add your school to continue.');
@@ -82,11 +66,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     );
   }
 
-  Future<void> _saveSetup() async {
-    if (_isSaving) {
-      return;
-    }
+  // ── Async operations ────────────────────────────────────────────────────────
 
+  /// Saves all setup data to Firestore then navigates to the main app.
+  /// Clears _isSaving in a finally block so the spinner always goes away.
+  Future<void> _saveSetup() async {
+    if (_isSaving) return;
     setState(() => _isSaving = true);
 
     try {
@@ -98,41 +83,31 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         autoGenerateFlashcards: _autoGenerateFlashcards,
       );
 
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
+      // Remove all routes so the user can't press Back into the wizard.
       Navigator.pushNamedAndRemoveUntil(context, '/home', (_) => false);
     } on FirebaseException catch (e) {
-      if (e.code == 'permission-denied') {
-        _showMessage(
-          'Firestore blocked the save. Publish rules that allow users to write their own profile.',
-        );
-      } else {
-        _showMessage('Save failed: ${e.code}');
-      }
+      _showMessage(e.code == 'permission-denied'
+          ? 'Firestore blocked the save. Check your security rules.'
+          : 'Save failed: ${e.code}');
     } catch (e) {
       _showMessage('Could not save your setup. ${e.runtimeType}');
     } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
+  /// Signs the user out and returns them to AppEntryScreen.
+  /// Blocked while a save is in progress.
   Future<void> _logout() async {
-    if (_isSaving) {
-      return;
-    }
-
+    if (_isSaving) return;
     try {
       await _authService.signOut();
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => const AppEntryScreen()),
+        MaterialPageRoute(builder: (_) => const AppEntryScreen()),
         (_) => false,
       );
     } catch (_) {
@@ -140,60 +115,58 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     }
   }
 
+  // ── Helpers ─────────────────────────────────────────────────────────────────
+
+  /// Adds [value] to [selections] if absent, removes it if present.
   void _toggleSelection(List<String> selections, String value) {
     setState(() {
-      if (selections.contains(value)) {
-        selections.remove(value);
-      } else {
-        selections.add(value);
-      }
+      selections.contains(value)
+          ? selections.remove(value)
+          : selections.add(value);
     });
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
+
+  // ── Build ───────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-    final rawDisplayName = user?.displayName?.trim();
-    final displayName = rawDisplayName != null && rawDisplayName.isNotEmpty
-        ? rawDisplayName
-        : 'there';
+    final rawName = FirebaseAuth.instance.currentUser?.displayName?.trim();
+    final displayName = (rawName?.isNotEmpty ?? false) ? rawName! : 'there';
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: AppColors.setupBackground,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Log out button — top right
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton.icon(
                   onPressed: _logout,
-                  icon: const Icon(
-                    Icons.logout,
-                    color: _textSecondary,
-                    size: 18,
-                  ),
+                  icon: const Icon(Icons.logout, color: Colors.white70, size: 18),
                   label: const Text(
                     'Log Out',
                     style: TextStyle(
-                      color: _textSecondary,
+                      color: Colors.white70,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
               ),
+
+              // Greeting
               Text(
                 'Welcome, $displayName',
                 style: const TextStyle(
-                  color: _textPrimary,
+                  color: Colors.white,
                   fontSize: 30,
                   fontWeight: FontWeight.bold,
                 ),
@@ -201,25 +174,30 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               const SizedBox(height: 8),
               const Text(
                 'Set up your study feed in a few quick steps.',
-                style: TextStyle(color: _textSecondary, fontSize: 15),
+                style: TextStyle(color: Colors.white70, fontSize: 15),
               ),
               const SizedBox(height: 20),
+
+              // Step progress bar — filled segments show completed/current steps
               Row(
-                children: List.generate(
-                  3,
-                  (index) => Expanded(
+                children: List.generate(3, (index) {
+                  return Expanded(
                     child: Container(
                       height: 6,
                       margin: EdgeInsets.only(right: index == 2 ? 0 : 8),
                       decoration: BoxDecoration(
-                        color: index <= _currentPage ? _accent : Colors.white12,
+                        color: index <= _currentPage
+                            ? AppColors.purpleBright
+                            : Colors.white12,
                         borderRadius: BorderRadius.circular(999),
                       ),
                     ),
-                  ),
-                ),
+                  );
+                }),
               ),
               const SizedBox(height: 24),
+
+              // Page content — swipe disabled so buttons enforce validation
               Expanded(
                 child: PageView(
                   controller: _pageController,
@@ -227,66 +205,32 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   onPageChanged: (value) =>
                       setState(() => _currentPage = value),
                   children: [
-                    _SetupCard(
-                      title: 'Where are you studying?',
-                      subtitle:
-                          'This helps us personalize the profile you build next.',
-                      child: _ThemedTextField(
-                        controller: _schoolController,
-                        label: 'School',
-                        icon: Icons.school_outlined,
-                      ),
+                    SetupStepSchool(controller: _schoolController),
+                    SetupStepCourses(
+                      selectedCourses: _selectedCourses,
+                      onTap: (v) => _toggleSelection(_selectedCourses, v),
                     ),
-                    _SetupCard(
-                      title: 'Pick your courses',
-                      subtitle:
-                          'Choose the classes you want FocusFeed to prioritize.',
-                      child: _ChoiceWrap(
-                        options: _availableCourses,
-                        selections: _selectedCourses,
-                        onTap: (value) =>
-                            _toggleSelection(_selectedCourses, value),
-                      ),
-                    ),
-                    _SetupCard(
-                      title: 'Finish your preferences',
-                      subtitle: 'Select topics and a couple of app defaults.',
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _ChoiceWrap(
-                            options: _availableSubjects,
-                            selections: _selectedSubjects,
-                            onTap: (value) =>
-                                _toggleSelection(_selectedSubjects, value),
-                          ),
-                          const SizedBox(height: 18),
-                          _PreferenceSwitch(
-                            title: 'Notifications',
-                            subtitle: 'Enable reminders and updates',
-                            value: _notificationsEnabled,
-                            onChanged: (value) =>
-                                setState(() => _notificationsEnabled = value),
-                          ),
-                          const SizedBox(height: 12),
-                          _PreferenceSwitch(
-                            title: 'Auto-generate flashcards',
-                            subtitle:
-                                'Create flashcards from imported study content',
-                            value: _autoGenerateFlashcards,
-                            onChanged: (value) =>
-                                setState(() => _autoGenerateFlashcards = value),
-                          ),
-                        ],
-                      ),
+                    SetupStepPreferences(
+                      selectedSubjects: _selectedSubjects,
+                      onSubjectTap: (v) =>
+                          _toggleSelection(_selectedSubjects, v),
+                      notificationsEnabled: _notificationsEnabled,
+                      onNotificationsChanged: (v) =>
+                          setState(() => _notificationsEnabled = v),
+                      autoGenerateFlashcards: _autoGenerateFlashcards,
+                      onAutoGenerateChanged: (v) =>
+                          setState(() => _autoGenerateFlashcards = v),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 20),
+
+              // Navigation buttons
               Row(
                 children: [
-                  if (_currentPage > 0)
+                  // Back button — hidden on the first page
+                  if (_currentPage > 0) ...[
                     Expanded(
                       child: OutlinedButton(
                         style: OutlinedButton.styleFrom(
@@ -298,23 +242,24 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         ),
                         onPressed: _isSaving
                             ? null
-                            : () {
-                                _pageController.previousPage(
+                            : () => _pageController.previousPage(
                                   duration: const Duration(milliseconds: 220),
                                   curve: Curves.easeOut,
-                                );
-                              },
+                                ),
                         child: const Text(
                           'Back',
-                          style: TextStyle(color: _textPrimary),
+                          style: TextStyle(color: Colors.white),
                         ),
                       ),
                     ),
-                  if (_currentPage > 0) const SizedBox(width: 12),
+                    const SizedBox(width: 12),
+                  ],
+
+                  // Continue / Finish Setup button
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _accent,
+                        backgroundColor: AppColors.purpleBright,
                         minimumSize: const Size.fromHeight(52),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -344,195 +289,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _SetupCard extends StatelessWidget {
-  const _SetupCard({
-    required this.title,
-    required this.subtitle,
-    required this.child,
-  });
-
-  final String title;
-  final String subtitle;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: _ProfileSetupScreenState._card,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              color: _ProfileSetupScreenState._textPrimary,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            subtitle,
-            style: const TextStyle(
-              color: _ProfileSetupScreenState._textSecondary,
-              fontSize: 14,
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Expanded(child: SingleChildScrollView(child: child)),
-        ],
-      ),
-    );
-  }
-}
-
-class _ThemedTextField extends StatelessWidget {
-  const _ThemedTextField({
-    required this.controller,
-    required this.label,
-    required this.icon,
-  });
-
-  final TextEditingController controller;
-  final String label;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      style: const TextStyle(color: _ProfileSetupScreenState._textPrimary),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(
-          color: _ProfileSetupScreenState._textSecondary,
-        ),
-        prefixIcon: Icon(icon, color: _ProfileSetupScreenState._textSecondary),
-        filled: true,
-        fillColor: const Color(0xFF0F1433),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Colors.white10),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(
-            color: _ProfileSetupScreenState._accent,
-            width: 1.4,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ChoiceWrap extends StatelessWidget {
-  const _ChoiceWrap({
-    required this.options,
-    required this.selections,
-    required this.onTap,
-  });
-
-  final List<String> options;
-  final List<String> selections;
-  final ValueChanged<String> onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      children: options.map((option) {
-        final isSelected = selections.contains(option);
-
-        return ChoiceChip(
-          label: Text(option),
-          selected: isSelected,
-          onSelected: (_) => onTap(option),
-          selectedColor: _ProfileSetupScreenState._accent,
-          backgroundColor: const Color(0xFF0F1433),
-          side: BorderSide(
-            color: isSelected
-                ? _ProfileSetupScreenState._accent
-                : Colors.white10,
-          ),
-          labelStyle: TextStyle(
-            color: isSelected ? Colors.white : Colors.white70,
-            fontWeight: FontWeight.w600,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        );
-      }).toList(),
-    );
-  }
-}
-
-class _PreferenceSwitch extends StatelessWidget {
-  const _PreferenceSwitch({
-    required this.title,
-    required this.subtitle,
-    required this.value,
-    required this.onChanged,
-  });
-
-  final String title;
-  final String subtitle;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F1433),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: _ProfileSetupScreenState._textPrimary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: _ProfileSetupScreenState._textSecondary,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Switch(
-            value: value,
-            activeThumbColor: _ProfileSetupScreenState._accent,
-            onChanged: onChanged,
-          ),
-        ],
       ),
     );
   }

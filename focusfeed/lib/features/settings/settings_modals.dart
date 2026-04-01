@@ -124,7 +124,7 @@ Future<void> showLogoutDialog({
   required Color accentColor,
   required Color textPrimary,
   required Color textSecondary,
-  required VoidCallback onLogout,
+  required Future<void> Function() onLogout,
 }) {
   return showDialog(
     context: context,
@@ -147,9 +147,9 @@ Future<void> showLogoutDialog({
               backgroundColor: accentColor,
               foregroundColor: Colors.white,
             ),
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              onLogout();
+              await onLogout();
             },
             child: const Text("Log Out"),
           ),

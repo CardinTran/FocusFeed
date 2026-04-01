@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:focusfeed/features/auth/services/auth_service.dart';
 import 'settings_modals.dart';
 import 'settings_widgets.dart';
 
@@ -561,8 +562,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       accentColor: _accent,
       textPrimary: _textPrimary,
       textSecondary: _textSecondary,
-      onLogout: () {
-        _showSnackBar("Logged out");
+      onLogout: () async {
+        try {
+          await AuthServices().signOut();
+        } catch (_) {
+          if (!mounted) return;
+          _showSnackBar("Unable to log out. Please try again.");
+        }
       },
     );
   }

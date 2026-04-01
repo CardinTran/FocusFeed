@@ -14,15 +14,13 @@ class WelcomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo Placeholder
-            Container(
-              height: 100,
+            // Logo
+            Image.asset(
+              'web/ff-logo-transparent.png',
               width: 100,
-              decoration: BoxDecoration(
-                color: Colors.white24,
-                borderRadius: BorderRadius.circular(20),
-              ),
+              height: 100,
             ),
+
             const SizedBox(height: 30),
 
             // App Title

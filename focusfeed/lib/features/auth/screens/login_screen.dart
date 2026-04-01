@@ -59,13 +59,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 // Logo
                 Center(
-                  child: Container(
-                    height: 80,
+                  child: Image.asset(
+                    'web/ff-logo-transparent.png',
                     width: 80,
-                    decoration: BoxDecoration(
-                      color: Colors.white24,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
+                    height: 80,
                   ),
                 ),
 

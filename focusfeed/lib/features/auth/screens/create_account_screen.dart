@@ -17,6 +17,36 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   final confirmPasswordController = TextEditingController();
   final auth = AuthServices();
 
+//Email Regex pattern for basic validation
+  bool isValidEmail(String email) {
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    return emailRegex.hasMatch(email);
+  }
+  //Empty field validation
+  String? validateFields() {
+    if (nameController.text.trim().isEmpty) {
+      return "Full Name cannot be empty";
+    }
+    if (emailController.text.trim().isEmpty) {
+      return "Email cannot be empty";
+    }
+    if (!isValidEmail(emailController.text.trim())) {
+      return "Please enter a valid email address";
+    }
+    if (passwordController.text.isEmpty) {
+      return "Password cannot be empty";
+    }
+    if (passwordController.text.length < 6) {
+  return "Password must be at least 6 characters";
+    }
+    if (confirmPasswordController.text.isEmpty) {
+      return "Confirm Password cannot be empty";
+    }
+    if (passwordController.text != confirmPasswordController.text) {
+      return "Passwords do not match";
+    }
+    return null;
+  }
   @override
   void dispose(){
     nameController.dispose();
@@ -143,17 +173,18 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: () async{
-                    if(passwordController.text != confirmPasswordController.text){
-                      debugPrint("Passwords don't match");
+                    final error = validateFields();
+                    if (error != null) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
                       return;
                     }
                     final result = await auth.signUpWithEmail(
                       emailController.text.trim(),
                       passwordController.text,
-                      );
-                      if (result == null) return;
-                      if (!context.mounted) return;
-                      Navigator.pushReplacementNamed(context, '/home');
+                    );
+                    if (result == null) return;
+                    if (!context.mounted) return;
+                    Navigator.pushReplacementNamed(context, '/home');
                   },
                   child: const Text(
                     "Create Account",

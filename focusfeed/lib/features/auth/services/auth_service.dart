@@ -95,7 +95,7 @@ class AuthServices {
       if (user != null) {
         await _createUserDocument(user);
       }
-      
+
       return userCredential;
     } on FirebaseAuthException catch (e) {
       debugPrint(e.message);

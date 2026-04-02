@@ -93,7 +93,7 @@ class WelcomeScreen extends StatelessWidget {
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Get Started", style: TextStyle(color: Colors.white)),
+                  Text("Create Account", style: TextStyle(color: Colors.white)),
                   SizedBox(width: 8),
                   Icon(Icons.arrow_forward, size: 18, color: Colors.white),
                 ],

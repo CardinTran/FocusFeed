@@ -173,18 +173,19 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       onPressed: () =>
                           setState(() => _showPassword = !_showPassword),
                     ),
-                    onPressed: () => setState(() => _showPassword = !_showPassword),
                   ),
-                ),
 
                 const SizedBox(height: 14),
 
                 // Confirm Password
                 _InputField(
+                  fieldKey: _confirmPasswordFieldKey,
                   hint: "Confirm Password",
                   icon: Icons.lock_outline,
                   obscure: !_showConfirmPassword,
                   controller: confirmPasswordController,
+                  validator: validateConfirmPassword,
+                  textInputAction: TextInputAction.done,
                   suffixIcon: IconButton(
                     icon: Icon(
                       _showConfirmPassword ? Icons.visibility_off_outlined : Icons.remove_red_eye_outlined,
@@ -205,11 +206,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: () async{
-                    final error = validateFields();
-                    if (error != null) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
-                      return;
-                    }
+                    if (!_formKey.currentState!.validate()) return;
                     final result = await auth.signUpWithEmail(
                       emailController.text.trim(),
                       passwordController.text,
@@ -286,6 +283,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
               ],
             ),
           ),
+        ),
         ),
       ),
     );

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:focusfeed/firebase_options.dart';
 
 /// Handles all Firebase Authentication logic: email/password sign-up and
 /// sign-in, Google OAuth sign-in, sign-out, and creating the user's
@@ -13,7 +14,13 @@ class AuthServices {
 
   /// Must be called once before using Google sign-in.
   Future<void> initGoogleSignIn() async {
-    await _googleSignIn.initialize();
+    await _googleSignIn.initialize(
+      clientId:
+          defaultTargetPlatform == TargetPlatform.iOS ||
+                  defaultTargetPlatform == TargetPlatform.macOS
+              ? DefaultFirebaseOptions.currentPlatform.iosClientId
+              : null,
+    );
   }
 
   /// Creates a new account with email and password.
@@ -97,11 +104,15 @@ class AuthServices {
       }
       
       return userCredential;
+    } on GoogleSignInException catch (e) {
+      debugPrint('Google sign-in failed: ${e.code} ${e.description}');
+      debugPrint('Google sign-in details: ${e.details}');
+      return null;
     } on FirebaseAuthException catch (e) {
-      debugPrint(e.message);
+      debugPrint('Firebase Google auth failed: ${e.code} ${e.message}');
       return null;
     } catch (e) {
-      debugPrint(e.toString());
+      debugPrint('Unknown Google auth error: $e');
       return null;
     }
   }

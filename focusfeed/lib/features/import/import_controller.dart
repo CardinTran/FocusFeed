@@ -33,7 +33,7 @@ class ImportController {
        repository = repository ?? ImportRepository();
 
   Future<ImportResult> pickAndImportFile() async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['txt', 'csv'],
       withData: true,

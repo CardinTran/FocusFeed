@@ -22,8 +22,28 @@ class ProfileService {
   DocumentReference<Map<String, dynamic>> get _profileDoc =>
       _firestore.collection('users').doc(_currentUser.uid);
 
-  /// Returns true if the user's Firestore document has `setupComplete: true`.
-  /// Returns false if the document doesn't exist or the field is missing/false.
+  /// Returns the full `users/{uid}` document as a raw map, or `null` if the
+  /// document does not exist (e.g. the user was created before Firestore
+  /// writes were added).
+  Future<Map<String, dynamic>?> getProfile() async {
+    final snapshot = await _profileDoc.get();
+    if (!snapshot.exists) return null;
+    return snapshot.data();
+  }
+
+  /// Merges [data] into `users/{uid}` without overwriting unrelated fields.
+  /// Always stamps `updatedAt` with a server timestamp so the last-modified
+  /// time is always accurate regardless of client clock drift.
+  Future<void> updateProfile(Map<String, dynamic> data) async {
+    await _profileDoc.set(
+      {...data, 'updatedAt': FieldValue.serverTimestamp()},
+      SetOptions(merge: true),
+    );
+  }
+
+  /// Returns `true` if `users/{uid}` has `setupComplete == true`.
+  /// Used by [AppEntryScreen] to decide whether to show the onboarding wizard
+  /// or the main app on login.
   Future<bool> hasCompletedSetup() async {
     final snapshot = await _profileDoc.get();
     if (!snapshot.exists) return false;

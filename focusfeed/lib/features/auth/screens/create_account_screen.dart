@@ -3,6 +3,9 @@ import 'package:focusfeed/features/auth/screens/app_entry_screen.dart';
 import 'package:focusfeed/features/auth/services/auth_service.dart';
 import 'package:focusfeed/features/profile/screens/profile_setup_screen.dart';
 
+/// Sign-up screen. Collects name, email, password, and confirm password,
+/// validates them inline, then calls [AuthServices.signUpWithEmail].
+/// On success navigates to [ProfileSetupScreen] to complete onboarding.
 class CreateAccountScreen extends StatefulWidget {
   const CreateAccountScreen({super.key});
 
@@ -163,6 +166,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     ),
                   ),
                   onPressed: () async {
+                    // Guard against mismatched passwords before hitting Firebase.
                     if (passwordController.text !=
                         confirmPasswordController.text) {
                       debugPrint("Passwords don't match");
@@ -173,8 +177,10 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       passwordController.text,
                       displayName: nameController.text,
                     );
+                    // signUpWithEmail returns null on failure — bail silently.
                     if (result == null) return;
                     if (!context.mounted) return;
+                    // Replace this screen so Back can't return to sign-up.
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
@@ -227,6 +233,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           final result = await auth.signInWithGoogle();
                           if (result == null) return;
                           if (!context.mounted) return;
+                          // Push AppEntryScreen and clear the stack — it will
+                          // re-evaluate auth + setup state and route correctly.
                           Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(
@@ -284,6 +292,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   }
 }
 
+/// Shared themed text field used across the sign-up form.
+/// Applies the app's purple border style and white text consistently.
 class _InputField extends StatelessWidget {
   final TextEditingController? controller;
   final String hint;

@@ -1,8 +1,12 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:focusfeed/features/auth/services/auth_service.dart';
+import 'package:focusfeed/features/profile/services/profile_service.dart';
 import 'settings_modals.dart';
 import 'settings_widgets.dart';
 
+/// Settings screen — displays and edits the current user's account details,
+/// academic preferences, and app preferences.
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -11,16 +15,63 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  String username = "Cardini Panini";
-  String email = "Cardini@gmail.com";
-  String passwordMasked = "••••••••";
-  String school = "Louisiana State University";
+  final _profileService = ProfileService();
+  final _auth = AuthServices();
 
-  List<String> selectedCourses = ["Computer Science"];
-  List<String> selectedSubjects = ["AI", "Technology"];
+  /// True while the initial Firestore read is in flight. Shows a spinner
+  /// instead of the ListView so stale placeholder values are never visible.
+  bool _isLoading = true;
 
+  // Account fields
+  String username = "";
+  String email = "";
+  String school = "";
+
+  // Academic preference fields
+  List<String> selectedCourses = [];
+  List<String> selectedSubjects = [];
+
+  // App preference fields
   bool notificationsEnabled = true;
   bool autoGenerateFlashcards = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  /// Reads the user's Firestore document and populates local state.
+  ///
+  /// Falls back to [FirebaseAuth.currentUser] fields if the Firestore doc is
+  /// missing a value (e.g. the user signed in via Google before completing
+  /// profile setup). On any error, clears [_isLoading] so the screen still
+  /// renders rather than spinning forever.
+  Future<void> _loadProfile() async {
+    try {
+      final data = await _profileService.getProfile();
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+      if (!mounted) return;
+      setState(() {
+        username = data?['displayName'] as String? ??
+            firebaseUser?.displayName ??
+            '';
+        email = data?['email'] as String? ?? firebaseUser?.email ?? '';
+        school = data?['school'] as String? ?? '';
+        selectedCourses =
+            List<String>.from(data?['selectedCourses'] as List? ?? []);
+        selectedSubjects =
+            List<String>.from(data?['selectedSubjects'] as List? ?? []);
+        notificationsEnabled =
+            data?['notificationsEnabled'] as bool? ?? true;
+        autoGenerateFlashcards =
+            data?['autoGenerateFlashcards'] as bool? ?? true;
+        _isLoading = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   final List<String> availableCourses = [
     "Economics",
@@ -65,7 +116,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: const Text('Settings', style: TextStyle(color: _textPrimary)),
         iconTheme: const IconThemeData(color: _textPrimary),
       ),
-      body: ListView(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
         padding: const EdgeInsets.all(16),
         children: [
           const SettingsSectionTitle(title: "Account", textColor: _textPrimary),
@@ -154,10 +207,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: "Notifications",
             subtitle: "Enable reminders and updates",
             value: notificationsEnabled,
+            // Update local state immediately for instant feedback, then
+            // persist to Firestore without awaiting — a failed write here
+            // is not worth blocking the toggle animation for.
             onChanged: (value) {
-              setState(() {
-                notificationsEnabled = value;
-              });
+              setState(() => notificationsEnabled = value);
+              _profileService.updateProfile({'notificationsEnabled': value});
               _showSnackBar(
                 value ? "Notifications enabled" : "Notifications disabled",
               );
@@ -172,10 +227,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: "Auto-generate flashcards",
             subtitle: "Create flashcards from imported study content",
             value: autoGenerateFlashcards,
+            // Same fire-and-forget pattern as the notifications toggle above.
             onChanged: (value) {
-              setState(() {
-                autoGenerateFlashcards = value;
-              });
+              setState(() => autoGenerateFlashcards = value);
+              _profileService.updateProfile({'autoGenerateFlashcards': value});
               _showSnackBar(
                 value
                     ? "Auto-generate flashcards enabled"
@@ -243,6 +298,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // Dialog
+
+  /// Updates the display name in both Firebase Auth and Firestore so both
+  /// sources stay in sync. Firebase Auth is the source of truth for the
+  /// logged-in user object; Firestore is queried by other features.
   void _openUsernameDialog() {
     final controller = TextEditingController(text: username);
 
@@ -261,15 +321,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 20),
           _primaryButton(
             label: "Save",
-            onPressed: () {
-              if (controller.text.trim().isEmpty) return;
+            onPressed: () async {
+              final value = controller.text.trim();
+              if (value.isEmpty) return;
 
-              setState(() {
-                username = controller.text.trim();
-              });
-
-              Navigator.pop(context);
-              _showSnackBar("Username updated");
+              try {
+                await FirebaseAuth.instance.currentUser
+                    ?.updateDisplayName(value);
+                await _profileService.updateProfile({'displayName': value});
+                if (!mounted) return;
+                setState(() => username = value);
+                Navigator.pop(context);
+                _showSnackBar("Username updated");
+              } catch (_) {
+                _showSnackBar("Failed to update username");
+              }
             },
           ),
         ],
@@ -277,6 +343,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  /// Sends a verification email to the new address via [verifyBeforeUpdateEmail].
+  /// Firebase Auth only swaps the email after the user clicks the link, so the
+  /// Auth object still holds the old email until then. Firestore is updated
+  /// optimistically so the UI reflects the intended new value immediately.
   void _openEmailDialog() {
     final controller = TextEditingController(text: email);
 
@@ -296,20 +366,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 20),
           _primaryButton(
             label: "Save",
-            onPressed: () {
+            onPressed: () async {
               final value = controller.text.trim();
-
               if (!value.contains("@")) {
                 _showSnackBar("Invalid email");
                 return;
               }
 
-              setState(() {
-                email = value;
-              });
-
-              Navigator.pop(context);
-              _showSnackBar("Email updated");
+              try {
+                await FirebaseAuth.instance.currentUser
+                    ?.verifyBeforeUpdateEmail(value);
+                await _profileService.updateProfile({'email': value});
+                if (!mounted) return;
+                setState(() => email = value);
+                Navigator.pop(context);
+                _showSnackBar(
+                    "Verification email sent. Email updates after confirmation.");
+              } on FirebaseAuthException catch (e) {
+                _showSnackBar(e.code == 'requires-recent-login'
+                    ? 'Please log out and log back in before changing your email.'
+                    : 'Failed to update email: ${e.message}');
+              } catch (_) {
+                _showSnackBar("Failed to update email");
+              }
             },
           ),
         ],
@@ -317,6 +396,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  /// Re-authenticates the user with their current password before calling
+  /// [updatePassword]. Firebase requires re-authentication for sensitive
+  /// operations when the session was established too long ago.
   void _openPasswordDialog() {
     final current = TextEditingController();
     final newPass = TextEditingController();
@@ -352,14 +434,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 20),
           _primaryButton(
             label: "Save",
-            onPressed: () {
+            onPressed: () async {
               if (newPass.text != confirm.text) {
                 _showSnackBar("Passwords do not match");
                 return;
               }
+              if (newPass.text.length < 6) {
+                _showSnackBar("Password must be at least 6 characters");
+                return;
+              }
 
-              Navigator.pop(context);
-              _showSnackBar("Password updated");
+              try {
+                final user = FirebaseAuth.instance.currentUser;
+                if (user?.email != null) {
+                  final cred = EmailAuthProvider.credential(
+                    email: user!.email!,
+                    password: current.text,
+                  );
+                  await user.reauthenticateWithCredential(cred);
+                }
+                await FirebaseAuth.instance.currentUser
+                    ?.updatePassword(newPass.text);
+                if (!mounted) return;
+                Navigator.pop(context);
+                _showSnackBar("Password updated");
+              } on FirebaseAuthException catch (e) {
+                _showSnackBar(e.code == 'wrong-password'
+                    ? 'Current password is incorrect.'
+                    : 'Failed to update password: ${e.message}');
+              } catch (_) {
+                _showSnackBar("Failed to update password");
+              }
             },
           ),
         ],
@@ -385,13 +490,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 20),
           _primaryButton(
             label: "Save",
-            onPressed: () {
-              setState(() {
-                school = controller.text.trim();
-              });
-
-              Navigator.pop(context);
-              _showSnackBar("School updated");
+            onPressed: () async {
+              final value = controller.text.trim();
+              try {
+                await _profileService.updateProfile({'school': value});
+                if (!mounted) return;
+                setState(() => school = value);
+                Navigator.pop(context);
+                _showSnackBar("School updated");
+              } catch (_) {
+                _showSnackBar("Failed to update school");
+              }
             },
           ),
         ],
@@ -399,6 +508,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  /// Uses a local [tempSelected] copy so the modal can show checkbox state
+  /// without touching [selectedCourses] until the user explicitly saves.
+  /// [Navigator.of(context)] is captured before the await to avoid using a
+  /// potentially stale BuildContext after the async gap.
   void _openCoursesSheet() {
     List<String> tempSelected = List.from(selectedCourses);
 
@@ -448,13 +561,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 16),
               _primaryButton(
                 label: "Save Courses",
-                onPressed: () {
-                  setState(() {
-                    selectedCourses = tempSelected;
-                  });
-
-                  Navigator.pop(context);
-                  _showSnackBar("Courses updated");
+                onPressed: () async {
+                  final nav = Navigator.of(context);
+                  try {
+                    await _profileService
+                        .updateProfile({'selectedCourses': tempSelected});
+                    if (!mounted) return;
+                    setState(() => selectedCourses = tempSelected);
+                    nav.pop();
+                    _showSnackBar("Courses updated");
+                  } catch (_) {
+                    _showSnackBar("Failed to update courses");
+                  }
                 },
               ),
             ],
@@ -464,6 +582,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  /// Same temp-copy + save pattern as [_openCoursesSheet], using [ChoiceChip]
+  /// instead of checkboxes for a tag-style selection UI.
   void _openSubjectsSheet() {
     List<String> tempSelected = List.from(selectedSubjects);
 
@@ -512,13 +632,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 24),
               _primaryButton(
                 label: "Save Subjects",
-                onPressed: () {
-                  setState(() {
-                    selectedSubjects = tempSelected;
-                  });
-
-                  Navigator.pop(context);
-                  _showSnackBar("Subjects updated");
+                onPressed: () async {
+                  final nav = Navigator.of(context);
+                  try {
+                    await _profileService
+                        .updateProfile({'selectedSubjects': tempSelected});
+                    if (!mounted) return;
+                    setState(() => selectedSubjects = tempSelected);
+                    nav.pop();
+                    _showSnackBar("Subjects updated");
+                  } catch (_) {
+                    _showSnackBar("Failed to update subjects");
+                  }
                 },
               ),
             ],
@@ -564,7 +689,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       textSecondary: _textSecondary,
       onLogout: () async {
         try {
-          await AuthServices().signOut();
+          await _auth.signOut();
         } catch (_) {
           if (!mounted) return;
           _showSnackBar("Unable to log out. Please try again.");
@@ -572,6 +697,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       },
     );
   }
+
+  // ── Shared UI helpers ────────────────────────────────────────────────────────
 
   Widget _themedTextField({
     required TextEditingController controller,

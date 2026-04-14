@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'features/auth/services/auth_service.dart';
 import 'features/auth/screens/welcome_screen.dart';
 import 'features/auth/screens/create_account_screen.dart';
+import 'features/auth/screens/login_screen.dart';
 import 'features/screens/main_nav_screen.dart';
 
 void main() async {
@@ -20,10 +22,43 @@ class FocusFeed extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const WelcomeScreen(),
+      home: const _AuthGate(),
       routes: {
+        '/auth-gate': (context) => const _AuthGate(),
         '/home': (context) => const MainNavScreen(),
         '/signup': (context) => const CreateAccountScreen(),
+        '/login': (context) => const LoginScreen(),
+      },
+    );
+  }
+}
+
+class _AuthGate extends StatelessWidget {
+  const _AuthGate();
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = AuthServices();
+
+    return StreamBuilder(
+      stream: auth.authStateChanges,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            backgroundColor: Color(0xFF0B0F2A),
+            body: Center(
+              child: CircularProgressIndicator(
+                color: Color.fromRGBO(133, 90, 251, 1),
+              ),
+            ),
+          );
+        }
+
+        if (snapshot.hasData) {
+          return const MainNavScreen();
+        }
+
+        return const WelcomeScreen();
       },
     );
   }

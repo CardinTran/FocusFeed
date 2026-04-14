@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:focusfeed/features/auth/services/auth_service.dart';
 import 'settings_modals.dart';
 import 'settings_widgets.dart';
 
@@ -10,6 +11,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  final auth = AuthServices();
   String username = "Cardini Panini";
   String email = "Cardini@gmail.com";
   String passwordMasked = "••••••••";
@@ -562,7 +564,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
       textPrimary: _textPrimary,
       textSecondary: _textSecondary,
       onLogout: () {
-        _showSnackBar("Logged out");
+        auth
+            .signOut()
+            .then((_) {
+              if (!mounted) return;
+              _showSnackBar("Logged out");
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/auth-gate',
+                (route) => false,
+              );
+            })
+            .catchError((_) {
+              if (!mounted) return;
+              _showSnackBar("Could not log out. Please try again.");
+            });
       },
     );
   }

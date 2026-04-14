@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:focusfeed/features/auth/screens/login_screen.dart';
 import 'package:focusfeed/features/auth/services/auth_service.dart';
 
 class CreateAccountScreen extends StatefulWidget {
@@ -9,11 +10,13 @@ class CreateAccountScreen extends StatefulWidget {
 }
 
 class _CreateAccountScreenState extends State<CreateAccountScreen> {
+  static const bool _googleSignInEnabled = true;
   bool _showPassword = false;
   bool _showConfirmPassword = false;
   final _formKey = GlobalKey<FormState>();
   final _confirmPasswordFieldKey = GlobalKey<FormFieldState<String>>();
-
+  bool _isLoading = false;
+  String? _authError;
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -21,13 +24,14 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
 
   final auth = AuthServices();
 
+// Simple email validation using regex
   bool isValidEmail(String email) {
     final emailRegex = RegExp(
       r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
     );
     return emailRegex.hasMatch(email);
   }
-
+// Validation functions for each field
   String? validateName(String? value) {
     if (value == null || value.trim().isEmpty) {
       return "Full Name cannot be empty";
@@ -64,6 +68,72 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       return "Passwords do not match";
     }
     return null;
+  }
+  // Handle create account logic
+  Future<void> _handleCreateAccount() async {
+    final isValid = _formKey.currentState?.validate() ?? false;
+
+    if (!isValid || _isLoading) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _authError = null;
+    });
+
+    try {
+      await auth.signUpWithEmail(
+        emailController.text.trim(),
+        passwordController.text,
+        displayName: nameController.text,
+      );
+
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(context, '/auth-gate', (route) => false);
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _authError = e.toString().replaceFirst('Exception: ', '');
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    if (_isLoading) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _authError = null;
+    });
+
+    try {
+      await auth.signInWithGoogle();
+
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(context, '/auth-gate', (route) => false);
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _authError = e.toString().replaceFirst('Exception: ', '');
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -131,6 +201,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     ),
                   ),
                   const SizedBox(height: 30),
+                  // Input fields
                   _InputField(
                     hint: "Full Name",
                     icon: Icons.person_outline,
@@ -138,6 +209,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     validator: validateName,
                     textInputAction: TextInputAction.next,
                   ),
+                  
                   const SizedBox(height: 14),
                   _InputField(
                     hint: "Email",
@@ -148,6 +220,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     textInputAction: TextInputAction.next,
                   ),
                   const SizedBox(height: 14),
+
                   _InputField(
                     hint: "Password",
                     icon: Icons.lock_outline,
@@ -168,8 +241,11 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         color: Colors.white38,
                         size: 20,
                       ),
-                      onPressed: () =>
-                          setState(() => _showPassword = !_showPassword),
+                      onPressed: () {
+                        setState(() {
+                          _showPassword = !_showPassword;
+                        });
+                      },
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -189,12 +265,23 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         color: Colors.white38,
                         size: 20,
                       ),
-                      onPressed: () => setState(
-                        () => _showConfirmPassword = !_showConfirmPassword,
-                      ),
+                      onPressed: () {
+                        setState(() {
+                          _showConfirmPassword = !_showConfirmPassword;
+                        });
+                      },
                     ),
                   ),
                   const SizedBox(height: 24),
+                  // Display authentication error if exists
+                  if (_authError != null) ...[
+                    Text(
+                      _authError!,
+                      style: const TextStyle(color: Color(0xFFFF8A80)),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromRGBO(133, 90, 251, 1),
@@ -203,82 +290,85 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    onPressed: () async {
-                      final isValid =
-                          _formKey.currentState?.validate() ?? false;
-                      if (!isValid) {
-                        return;
-                      }
-
-                      final result = await auth.signUpWithEmail(
-                        emailController.text.trim(),
-                        passwordController.text,
-                      );
-
-                      if (result == null) return;
-                      if (!context.mounted) return;
-                      Navigator.pushReplacementNamed(context, '/home');
-                    },
-                    child: const Text(
-                      "Create Account",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      const Expanded(child: Divider(color: Colors.white24)),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text(
-                          "Or continue with",
-                          style: TextStyle(color: Colors.white38, fontSize: 13),
-                        ),
-                      ),
-                      const Expanded(child: Divider(color: Colors.white24)),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Colors.white24),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                    // Disable button when loading to prevent multiple submissions
+                    onPressed: _isLoading ? null : _handleCreateAccount,
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
                             ),
-                          ),
-                          onPressed: () async {
-                            final result = await auth.signInWithGoogle();
-                            if (result == null) return;
-                            if (!context.mounted) return;
-                            Navigator.pushReplacementNamed(context, '/home');
-                          },
-                          icon: const Text(
-                            "G",
+                          )
+                        : const Text(
+                            "Create Account",
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),
                           ),
-                          label: const Text(
-                            "Google",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ],
                   ),
                   const SizedBox(height: 20),
+                  if (_googleSignInEnabled) ...[
+                    Row(
+                      children: [
+                        const Expanded(child: Divider(color: Colors.white24)),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            "Or continue with",
+                            style: TextStyle(
+                              color: Colors.white38,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                        const Expanded(child: Divider(color: Colors.white24)),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Colors.white24),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: _isLoading ? null : _handleGoogleSignIn,
+                            icon: const Text(
+                              "G",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            label: const Text(
+                              "Google",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+
                   GestureDetector(
-                    onTap: () => Navigator.pop(context),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoginScreen(),
+                        ),
+                      );
+                    },
                     child: Center(
                       child: RichText(
                         text: const TextSpan(
@@ -358,7 +448,9 @@ class _InputField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color.fromRGBO(133, 90, 251, 1)),
+          borderSide: const BorderSide(
+            color: Color.fromRGBO(133, 90, 251, 1),
+          ),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

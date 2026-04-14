@@ -53,17 +53,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final firebaseUser = FirebaseAuth.instance.currentUser;
       if (!mounted) return;
       setState(() {
-        username = data?['displayName'] as String? ??
-            firebaseUser?.displayName ??
-            '';
+        username =
+            data?['displayName'] as String? ?? firebaseUser?.displayName ?? '';
         email = data?['email'] as String? ?? firebaseUser?.email ?? '';
         school = data?['school'] as String? ?? '';
-        selectedCourses =
-            List<String>.from(data?['selectedCourses'] as List? ?? []);
-        selectedSubjects =
-            List<String>.from(data?['selectedSubjects'] as List? ?? []);
-        notificationsEnabled =
-            data?['notificationsEnabled'] as bool? ?? true;
+        selectedCourses = List<String>.from(
+          data?['selectedCourses'] as List? ?? [],
+        );
+        selectedSubjects = List<String>.from(
+          data?['selectedSubjects'] as List? ?? [],
+        );
+        notificationsEnabled = data?['notificationsEnabled'] as bool? ?? true;
         autoGenerateFlashcards =
             data?['autoGenerateFlashcards'] as bool? ?? true;
         _isLoading = false;
@@ -119,182 +119,192 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          const SettingsSectionTitle(title: "Account", textColor: _textPrimary),
-          SettingsTile(
-            icon: Icons.person_outline,
-            title: "Username",
-            subtitle: username,
-            onTap: _openUsernameDialog,
-            cardColor: _card,
-            textPrimary: _textPrimary,
-            textSecondary: _textSecondary,
-          ),
-          SettingsTile(
-            icon: Icons.email_outlined,
-            title: "Email",
-            subtitle: email,
-            onTap: _openEmailDialog,
-            cardColor: _card,
-            textPrimary: _textPrimary,
-            textSecondary: _textSecondary,
-          ),
-          SettingsTile(
-            icon: Icons.lock_outline,
-            title: "Password",
-            subtitle: "Change your password",
-            onTap: _openPasswordDialog,
-            cardColor: _card,
-            textPrimary: _textPrimary,
-            textSecondary: _textSecondary,
-          ),
-          SettingsTile(
-            icon: Icons.logout,
-            title: "Log Out",
-            subtitle: "Sign out of your account",
-            onTap: _handleLogoutTap,
-            cardColor: _card,
-            textPrimary: _textPrimary,
-            textSecondary: _textSecondary,
-          ),
+              padding: const EdgeInsets.all(16),
+              children: [
+                const SettingsSectionTitle(
+                  title: "Account",
+                  textColor: _textPrimary,
+                ),
+                SettingsTile(
+                  icon: Icons.person_outline,
+                  title: "Username",
+                  subtitle: username,
+                  onTap: _openUsernameDialog,
+                  cardColor: _card,
+                  textPrimary: _textPrimary,
+                  textSecondary: _textSecondary,
+                ),
+                SettingsTile(
+                  icon: Icons.email_outlined,
+                  title: "Email",
+                  subtitle: email,
+                  onTap: _openEmailDialog,
+                  cardColor: _card,
+                  textPrimary: _textPrimary,
+                  textSecondary: _textSecondary,
+                ),
+                SettingsTile(
+                  icon: Icons.lock_outline,
+                  title: "Password",
+                  subtitle: "Change your password",
+                  onTap: _openPasswordDialog,
+                  cardColor: _card,
+                  textPrimary: _textPrimary,
+                  textSecondary: _textSecondary,
+                ),
+                SettingsTile(
+                  icon: Icons.logout,
+                  title: "Log Out",
+                  subtitle: "Sign out of your account",
+                  onTap: _handleLogoutTap,
+                  cardColor: _card,
+                  textPrimary: _textPrimary,
+                  textSecondary: _textSecondary,
+                ),
 
-          const SizedBox(height: 24),
+                const SizedBox(height: 24),
 
-          const SettingsSectionTitle(
-            title: "Academic Preferences",
-            textColor: _textPrimary,
-          ),
-          SettingsTile(
-            icon: Icons.school_outlined,
-            title: "School",
-            subtitle: school,
-            onTap: _openSchoolDialog,
-            cardColor: _card,
-            textPrimary: _textPrimary,
-            textSecondary: _textSecondary,
-          ),
-          SettingsTile(
-            icon: Icons.menu_book_outlined,
-            title: "Courses",
-            subtitle: selectedCourses.isEmpty
-                ? "Choose your current courses"
-                : selectedCourses.join(", "),
-            onTap: _openCoursesSheet,
-            cardColor: _card,
-            textPrimary: _textPrimary,
-            textSecondary: _textSecondary,
-          ),
-          SettingsTile(
-            icon: Icons.interests_outlined,
-            title: "Subjects of Interest",
-            subtitle: selectedSubjects.isEmpty
-                ? "Personalize your content feed"
-                : selectedSubjects.join(", "),
-            onTap: _openSubjectsSheet,
-            cardColor: _card,
-            textPrimary: _textPrimary,
-            textSecondary: _textSecondary,
-          ),
+                const SettingsSectionTitle(
+                  title: "Academic Preferences",
+                  textColor: _textPrimary,
+                ),
+                SettingsTile(
+                  icon: Icons.school_outlined,
+                  title: "School",
+                  subtitle: school,
+                  onTap: _openSchoolDialog,
+                  cardColor: _card,
+                  textPrimary: _textPrimary,
+                  textSecondary: _textSecondary,
+                ),
+                SettingsTile(
+                  icon: Icons.menu_book_outlined,
+                  title: "Courses",
+                  subtitle: selectedCourses.isEmpty
+                      ? "Choose your current courses"
+                      : selectedCourses.join(", "),
+                  onTap: _openCoursesSheet,
+                  cardColor: _card,
+                  textPrimary: _textPrimary,
+                  textSecondary: _textSecondary,
+                ),
+                SettingsTile(
+                  icon: Icons.interests_outlined,
+                  title: "Subjects of Interest",
+                  subtitle: selectedSubjects.isEmpty
+                      ? "Personalize your content feed"
+                      : selectedSubjects.join(", "),
+                  onTap: _openSubjectsSheet,
+                  cardColor: _card,
+                  textPrimary: _textPrimary,
+                  textSecondary: _textSecondary,
+                ),
 
-          const SizedBox(height: 24),
+                const SizedBox(height: 24),
 
-          const SettingsSectionTitle(
-            title: "App Preferences",
-            textColor: _textPrimary,
-          ),
-          SettingsSwitchTile(
-            title: "Notifications",
-            subtitle: "Enable reminders and updates",
-            value: notificationsEnabled,
-            // Update local state immediately for instant feedback, then
-            // persist to Firestore without awaiting — a failed write here
-            // is not worth blocking the toggle animation for.
-            onChanged: (value) {
-              setState(() => notificationsEnabled = value);
-              _profileService.updateProfile({'notificationsEnabled': value});
-              _showSnackBar(
-                value ? "Notifications enabled" : "Notifications disabled",
-              );
-            },
-            cardColor: _card,
-            accentColor: _accent,
-            textPrimary: _textPrimary,
-            textSecondary: _textSecondary,
-          ),
-          const SizedBox(height: 12),
-          SettingsSwitchTile(
-            title: "Auto-generate flashcards",
-            subtitle: "Create flashcards from imported study content",
-            value: autoGenerateFlashcards,
-            // Same fire-and-forget pattern as the notifications toggle above.
-            onChanged: (value) {
-              setState(() => autoGenerateFlashcards = value);
-              _profileService.updateProfile({'autoGenerateFlashcards': value});
-              _showSnackBar(
-                value
-                    ? "Auto-generate flashcards enabled"
-                    : "Auto-generate flashcards disabled",
-              );
-            },
-            cardColor: _card,
-            accentColor: _accent,
-            textPrimary: _textPrimary,
-            textSecondary: _textSecondary,
-          ),
+                const SettingsSectionTitle(
+                  title: "App Preferences",
+                  textColor: _textPrimary,
+                ),
+                SettingsSwitchTile(
+                  title: "Notifications",
+                  subtitle: "Enable reminders and updates",
+                  value: notificationsEnabled,
+                  // Update local state immediately for instant feedback, then
+                  // persist to Firestore without awaiting — a failed write here
+                  // is not worth blocking the toggle animation for.
+                  onChanged: (value) {
+                    setState(() => notificationsEnabled = value);
+                    _profileService.updateProfile({
+                      'notificationsEnabled': value,
+                    });
+                    _showSnackBar(
+                      value
+                          ? "Notifications enabled"
+                          : "Notifications disabled",
+                    );
+                  },
+                  cardColor: _card,
+                  accentColor: _accent,
+                  textPrimary: _textPrimary,
+                  textSecondary: _textSecondary,
+                ),
+                const SizedBox(height: 12),
+                SettingsSwitchTile(
+                  title: "Auto-generate flashcards",
+                  subtitle: "Create flashcards from imported study content",
+                  value: autoGenerateFlashcards,
+                  // Same fire-and-forget pattern as the notifications toggle above.
+                  onChanged: (value) {
+                    setState(() => autoGenerateFlashcards = value);
+                    _profileService.updateProfile({
+                      'autoGenerateFlashcards': value,
+                    });
+                    _showSnackBar(
+                      value
+                          ? "Auto-generate flashcards enabled"
+                          : "Auto-generate flashcards disabled",
+                    );
+                  },
+                  cardColor: _card,
+                  accentColor: _accent,
+                  textPrimary: _textPrimary,
+                  textSecondary: _textSecondary,
+                ),
 
-          const SizedBox(height: 24),
+                const SizedBox(height: 24),
 
-          const SettingsSectionTitle(
-            title: "Privacy & Support",
-            textColor: _textPrimary,
-          ),
-          SettingsTile(
-            icon: Icons.privacy_tip_outlined,
-            title: "Privacy",
-            subtitle: "View privacy settings",
-            onTap: () {
-              _showSimpleInfoSheet(
-                title: "Privacy",
-                message:
-                    "Privacy in Progress. Actually you don't need any privacy! GIVE ME ALL YOUR MONEY AND INFORMATIONS.",
-              );
-            },
-            cardColor: _card,
-            textPrimary: _textPrimary,
-            textSecondary: _textSecondary,
-          ),
-          SettingsTile(
-            icon: Icons.bug_report_outlined,
-            title: "Report a Bug",
-            subtitle: "Help us improve the app",
-            onTap: () {
-              _showSimpleInfoSheet(
-                title: "Report a Bug",
-                message: "Bug Form in Progress. Actually maybe you're the bug!",
-              );
-            },
-            cardColor: _card,
-            textPrimary: _textPrimary,
-            textSecondary: _textSecondary,
-          ),
-          SettingsTile(
-            icon: Icons.info_outline,
-            title: "About",
-            subtitle: "App version and information",
-            onTap: () {
-              _showSimpleInfoSheet(
-                title: "About",
-                message:
-                    "FocusFeed v1.0.0\nA personalized learning feed for students.",
-              );
-            },
-            cardColor: _card,
-            textPrimary: _textPrimary,
-            textSecondary: _textSecondary,
-          ),
-        ],
-      ),
+                const SettingsSectionTitle(
+                  title: "Privacy & Support",
+                  textColor: _textPrimary,
+                ),
+                SettingsTile(
+                  icon: Icons.privacy_tip_outlined,
+                  title: "Privacy",
+                  subtitle: "View privacy settings",
+                  onTap: () {
+                    _showSimpleInfoSheet(
+                      title: "Privacy",
+                      message:
+                          "Privacy in Progress. Actually you don't need any privacy! GIVE ME ALL YOUR MONEY AND INFORMATIONS.",
+                    );
+                  },
+                  cardColor: _card,
+                  textPrimary: _textPrimary,
+                  textSecondary: _textSecondary,
+                ),
+                SettingsTile(
+                  icon: Icons.bug_report_outlined,
+                  title: "Report a Bug",
+                  subtitle: "Help us improve the app",
+                  onTap: () {
+                    _showSimpleInfoSheet(
+                      title: "Report a Bug",
+                      message:
+                          "Bug Form in Progress. Actually maybe you're the bug!",
+                    );
+                  },
+                  cardColor: _card,
+                  textPrimary: _textPrimary,
+                  textSecondary: _textSecondary,
+                ),
+                SettingsTile(
+                  icon: Icons.info_outline,
+                  title: "About",
+                  subtitle: "App version and information",
+                  onTap: () {
+                    _showSimpleInfoSheet(
+                      title: "About",
+                      message:
+                          "FocusFeed v1.0.0\nA personalized learning feed for students.",
+                    );
+                  },
+                  cardColor: _card,
+                  textPrimary: _textPrimary,
+                  textSecondary: _textSecondary,
+                ),
+              ],
+            ),
     );
   }
 
@@ -326,8 +336,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               if (value.isEmpty) return;
 
               try {
-                await FirebaseAuth.instance.currentUser
-                    ?.updateDisplayName(value);
+                await FirebaseAuth.instance.currentUser?.updateDisplayName(
+                  value,
+                );
                 await _profileService.updateProfile({'displayName': value});
                 if (!mounted) return;
                 setState(() => username = value);
@@ -381,11 +392,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 setState(() => email = value);
                 Navigator.pop(context);
                 _showSnackBar(
-                    "Verification email sent. Email updates after confirmation.");
+                  "Verification email sent. Email updates after confirmation.",
+                );
               } on FirebaseAuthException catch (e) {
-                _showSnackBar(e.code == 'requires-recent-login'
-                    ? 'Please log out and log back in before changing your email.'
-                    : 'Failed to update email: ${e.message}');
+                _showSnackBar(
+                  e.code == 'requires-recent-login'
+                      ? 'Please log out and log back in before changing your email.'
+                      : 'Failed to update email: ${e.message}',
+                );
               } catch (_) {
                 _showSnackBar("Failed to update email");
               }
@@ -453,15 +467,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   );
                   await user.reauthenticateWithCredential(cred);
                 }
-                await FirebaseAuth.instance.currentUser
-                    ?.updatePassword(newPass.text);
+                await FirebaseAuth.instance.currentUser?.updatePassword(
+                  newPass.text,
+                );
                 if (!mounted) return;
                 Navigator.pop(context);
                 _showSnackBar("Password updated");
               } on FirebaseAuthException catch (e) {
-                _showSnackBar(e.code == 'wrong-password'
-                    ? 'Current password is incorrect.'
-                    : 'Failed to update password: ${e.message}');
+                _showSnackBar(
+                  e.code == 'wrong-password'
+                      ? 'Current password is incorrect.'
+                      : 'Failed to update password: ${e.message}',
+                );
               } catch (_) {
                 _showSnackBar("Failed to update password");
               }
@@ -564,8 +581,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onPressed: () async {
                   final nav = Navigator.of(context);
                   try {
-                    await _profileService
-                        .updateProfile({'selectedCourses': tempSelected});
+                    await _profileService.updateProfile({
+                      'selectedCourses': tempSelected,
+                    });
                     if (!mounted) return;
                     setState(() => selectedCourses = tempSelected);
                     nav.pop();
@@ -635,8 +653,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onPressed: () async {
                   final nav = Navigator.of(context);
                   try {
-                    await _profileService
-                        .updateProfile({'selectedSubjects': tempSelected});
+                    await _profileService.updateProfile({
+                      'selectedSubjects': tempSelected,
+                    });
                     if (!mounted) return;
                     setState(() => selectedSubjects = tempSelected);
                     nav.pop();
@@ -690,6 +709,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       onLogout: () async {
         try {
           await _auth.signOut();
+          if (!mounted) return;
+          _showSnackBar("Logged out");
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/auth-gate',
+            (route) => false,
+          );
         } catch (_) {
           if (!mounted) return;
           _showSnackBar("Unable to log out. Please try again.");

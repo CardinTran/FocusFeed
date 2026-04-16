@@ -14,15 +14,13 @@ class WelcomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo Placeholder
-            Container(
-              height: 100,
+            // Logo
+            Image.asset(
+              'web/ff-logo-transparent.png',
               width: 100,
-              decoration: BoxDecoration(
-                color: Colors.white24,
-                borderRadius: BorderRadius.circular(20),
-              ),
+              height: 100,
             ),
+
             const SizedBox(height: 30),
 
             // App Title
@@ -95,7 +93,7 @@ class WelcomeScreen extends StatelessWidget {
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Get Started", style: TextStyle(color: Colors.white)),
+                  Text("Create Account", style: TextStyle(color: Colors.white)),
                   SizedBox(width: 8),
                   Icon(Icons.arrow_forward, size: 18, color: Colors.white),
                 ],

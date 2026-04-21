@@ -15,6 +15,7 @@ class ImportRepository {
     required String fileName,
     required String rawText,
     required List<ParsedFlashcard> cards,
+    String sourceType = 'file',
   }) async {
     final importRef = await firestore
         .collection('users')
@@ -24,6 +25,7 @@ class ImportRepository {
           'fileName': fileName,
           'rawText': rawText,
           'cardCount': cards.length,
+          'sourceType': sourceType,
           'createdAt': FieldValue.serverTimestamp(),
         });
 

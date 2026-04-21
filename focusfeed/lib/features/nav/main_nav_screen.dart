@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:focusfeed/features/feed/feed_controller.dart';
 import 'package:focusfeed/features/feed/feed_item.dart';
 import 'package:focusfeed/features/feed/feed_screen.dart';
-import 'package:focusfeed/features/import/import_repository.dart';
 import 'package:focusfeed/features/import/import_screen.dart';
 import 'package:focusfeed/features/library/library_screen.dart';
 import 'package:focusfeed/features/nav/nav_tab.dart';
@@ -18,6 +18,7 @@ class MainNavScreen extends StatefulWidget {
 }
 
 class _MainNavScreenState extends State<MainNavScreen> {
+  final FeedController _feedController = FeedController();
   NavTab _selectedTab = NavTab.feed;
 
   void _selectTab(NavTab tab) {
@@ -64,7 +65,7 @@ class _MainNavScreenState extends State<MainNavScreen> {
     }
 
     return StreamBuilder<List<FeedItem>>(
-      stream: ImportRepository().streamAllFeedItemsForUser(user.uid),
+      stream: _feedController.streamFeedItems(user.uid),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting &&
             !snapshot.hasData) {
@@ -95,8 +96,16 @@ class _MainNavScreenState extends State<MainNavScreen> {
           body: IndexedStack(
             index: _selectedIndex,
             children: [
-              FeedScreen(items: items, onUpdate: () {}),
-              SavedScreen(items: items, onUpdate: () {}),
+              FeedScreen(
+                items: items,
+                controller: _feedController,
+                onUpdate: () {},
+              ),
+              SavedScreen(
+                items: items,
+                controller: _feedController,
+                onUpdate: () {},
+              ),
               const LibraryScreen(),
               const ProfileScreen(),
             ],

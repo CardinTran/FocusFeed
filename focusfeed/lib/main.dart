@@ -6,6 +6,7 @@ import 'features/auth/screens/app_entry_screen.dart';
 import 'features/auth/screens/create_account_screen.dart';
 import 'features/profile/screens/profile_setup_screen.dart';
 import 'features/nav/main_nav_screen.dart';
+import 'features/intro/screens/intro_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,11 +22,14 @@ class FocusFeed extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const AppEntryScreen(),
+      //change back to "home: const AppEntryScreen()," after testing intro
+      //also make so that intro only shows on first launch or when user logs out
+      home: const IntroScreen(),
       routes: {
         '/home': (context) => const MainNavScreen(),
         '/signup': (context) => const CreateAccountScreen(),
         '/profile-setup': (context) => const ProfileSetupScreen(),
+        '/intro': (context) => const IntroScreen(),
       },
     );
   }

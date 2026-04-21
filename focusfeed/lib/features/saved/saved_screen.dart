@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:focusfeed/features/feed/feed_controller.dart';
 import 'package:focusfeed/features/feed/feed_item.dart';
 import 'package:focusfeed/features/feed/widgets/article_post_card.dart';
 import 'package:focusfeed/features/feed/widgets/flashcard_post_card.dart';
 
 class SavedScreen extends StatefulWidget {
   final List<FeedItem> items;
+  final FeedController controller;
   final VoidCallback onUpdate;
 
-  const SavedScreen({super.key, required this.items, required this.onUpdate});
+  const SavedScreen({
+    super.key,
+    required this.items,
+    required this.controller,
+    required this.onUpdate,
+  });
 
   @override
   State<SavedScreen> createState() => _SavedScreenState();
@@ -92,10 +99,12 @@ class _SavedScreenState extends State<SavedScreen> {
                           child: item.type == FeedItemType.flashcard
                               ? FlashcardPostCard(
                                   item: item,
+                                  controller: widget.controller,
                                   onChanged: () => _handleItemChanged(item),
                                 )
                               : ArticlePostCard(
                                   item: item,
+                                  controller: widget.controller,
                                   onChanged: () => _handleItemChanged(item),
                                 ),
                         );

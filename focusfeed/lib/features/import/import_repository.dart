@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:focusfeed/features/feed/feed_item.dart';
+import 'package:focusfeed/features/feed/feed_policy.dart';
 import 'package:focusfeed/features/import/parsed_flashcard.dart';
 
 class ImportRepository {
@@ -38,6 +39,10 @@ class ImportRepository {
         'order': i,
         'isSaved': false,
         'isLearned': false,
+        'seenCount': 0,
+        'lastSeenAt': null,
+        'lastLearnedAt': null,
+        'resurfaceAfter': null,
         'createdAt': FieldValue.serverTimestamp(),
       });
     }
@@ -85,11 +90,14 @@ class ImportRepository {
         .update({'isSaved': saved});
   }
 
-  Future<void> updateLearned({
+  /// Records that the user reached a card in the feed.
+  ///
+  /// The adaptive ranker uses this lightweight signal to avoid over-serving the
+  /// same cards in a short window.
+  Future<void> markSeen({
     required String userId,
     required String importId,
     required String cardId,
-    required bool learned,
   }) async {
     await firestore
         .collection('users')
@@ -98,7 +106,33 @@ class ImportRepository {
         .doc(importId)
         .collection('cards')
         .doc(cardId)
-        .update({'isLearned': learned});
+        .update({
+          'seenCount': FieldValue.increment(1),
+          'lastSeenAt': FieldValue.serverTimestamp(),
+        });
+  }
+
+  Future<void> updateLearned({
+    required String userId,
+    required String importId,
+    required String cardId,
+    required bool learned,
+  }) async {
+    final learnedAt = DateTime.now();
+    final resurfaceAfter = learnedAt.add(FeedPolicy.learnedResurfaceDelay);
+
+    await firestore
+        .collection('users')
+        .doc(userId)
+        .collection('imports')
+        .doc(importId)
+        .collection('cards')
+        .doc(cardId)
+        .update({
+          'isLearned': learned,
+          'lastLearnedAt': learned ? Timestamp.fromDate(learnedAt) : null,
+          'resurfaceAfter': learned ? Timestamp.fromDate(resurfaceAfter) : null,
+        });
   }
 
   Future<List<FeedItem>> loadFeedItemsFromImport({
@@ -126,6 +160,10 @@ class ImportRepository {
         deckTitle: 'FLASHCARD',
         question: data['term'] ?? '',
         answer: data['answer'] ?? '',
+        seenCount: (data['seenCount'] as num?)?.toInt() ?? 0,
+        lastSeenAt: _readTimestamp(data['lastSeenAt']),
+        lastLearnedAt: _readTimestamp(data['lastLearnedAt']),
+        resurfaceAfter: _readTimestamp(data['resurfaceAfter']),
         saved: data['isSaved'] ?? false,
         learned: data['isLearned'] ?? false,
       );
@@ -161,6 +199,10 @@ class ImportRepository {
                   deckTitle: 'FLASHCARD',
                   question: data['term'] ?? '',
                   answer: data['answer'] ?? '',
+                  seenCount: (data['seenCount'] as num?)?.toInt() ?? 0,
+                  lastSeenAt: _readTimestamp(data['lastSeenAt']),
+                  lastLearnedAt: _readTimestamp(data['lastLearnedAt']),
+                  resurfaceAfter: _readTimestamp(data['resurfaceAfter']),
                   saved: data['isSaved'] ?? false,
                   learned: data['isLearned'] ?? false,
                 ),
@@ -170,5 +212,15 @@ class ImportRepository {
 
           return allItems;
         });
+  }
+
+  /// Safely reads a Firestore timestamp field and converts it to a Dart
+  /// `DateTime`.
+  DateTime? _readTimestamp(dynamic value) {
+    if (value is Timestamp) {
+      return value.toDate();
+    }
+
+    return null;
   }
 }

@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:focusfeed/features/feed/feed_controller.dart';
 import 'package:focusfeed/features/feed/feed_item.dart';
 import 'package:focusfeed/features/feed/widgets/article_post_card.dart';
+import 'package:focusfeed/features/feed/widgets/explainer_post_card.dart';
+import 'package:focusfeed/features/feed/widgets/fill_in_blank_post_card.dart';
 import 'package:focusfeed/features/feed/widgets/flashcard_post_card.dart';
+import 'package:focusfeed/features/feed/widgets/quiz_post_card.dart';
 
 class SavedScreen extends StatefulWidget {
   final List<FeedItem> items;
@@ -96,17 +99,30 @@ class _SavedScreenState extends State<SavedScreen> {
 
                         return Padding(
                           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                          child: item.type == FeedItemType.flashcard
-                              ? FlashcardPostCard(
-                                  item: item,
-                                  controller: widget.controller,
-                                  onChanged: () => _handleItemChanged(item),
-                                )
-                              : ArticlePostCard(
-                                  item: item,
-                                  controller: widget.controller,
-                                  onChanged: () => _handleItemChanged(item),
-                                ),
+                          child: switch (item.type) {
+                            FeedItemType.flashcard => FlashcardPostCard(
+                                item: item,
+                                controller: widget.controller,
+                                onChanged: () => _handleItemChanged(item),
+                              ),
+                            FeedItemType.quiz => QuizPostCard(
+                                item: item,
+                                onChanged: () => _handleItemChanged(item),
+                              ),
+                            FeedItemType.fillInBlank => FillInBlankPostCard(
+                                item: item,
+                                onChanged: () => _handleItemChanged(item),
+                              ),
+                            FeedItemType.explainer => ExplainerPostCard(
+                                item: item,
+                                onChanged: () => _handleItemChanged(item),
+                              ),
+                            FeedItemType.article => ArticlePostCard(
+                                item: item,
+                                controller: widget.controller,
+                                onChanged: () => _handleItemChanged(item),
+                              ),
+                          },
                         );
                       },
                     ),

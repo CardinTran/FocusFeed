@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:focusfeed/features/import/import_controller.dart';
+import 'package:focusfeed/features/import/ocr_import_service.dart';
 import 'package:focusfeed/features/import/ocr_import_preview_screen.dart';
 import 'package:focusfeed/features/import/widgets/import_format_card.dart';
 import 'package:focusfeed/features/import/widgets/import_header_card.dart';
@@ -17,6 +18,7 @@ class _ImportScreenState extends State<ImportScreen> {
 
   bool _isImporting = false;
   bool _isScanningImage = false;
+  OcrImageInput? _activeOcrInput;
   String? _statusMessage;
   String? _selectedFileName;
 
@@ -48,23 +50,75 @@ class _ImportScreenState extends State<ImportScreen> {
     }
   }
 
-  Future<void> _pickImageForOcr() async {
+  Future<void> _showOcrSourceSheet() async {
+    final input = await showModalBottomSheet<OcrImageInput>(
+      context: context,
+      backgroundColor: const Color(0xFF12182F),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Import image with OCR',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _OcrSourceTile(
+                  icon: Icons.photo_camera_outlined,
+                  title: 'Take Photo',
+                  subtitle: 'Use your camera, then crop the text area.',
+                  onTap: () => Navigator.pop(context, OcrImageInput.camera),
+                ),
+                const SizedBox(height: 8),
+                _OcrSourceTile(
+                  icon: Icons.photo_library_outlined,
+                  title: 'Choose from Library',
+                  subtitle: 'Pick an existing screenshot or photo.',
+                  onTap: () => Navigator.pop(context, OcrImageInput.gallery),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (input == null) return;
+
+    await _pickImageForOcr(input);
+  }
+
+  Future<void> _pickImageForOcr(OcrImageInput input) async {
     try {
       setState(() {
         _isScanningImage = true;
+        _activeOcrInput = input;
         _statusMessage = null;
       });
 
       // This call includes both native image cropping and ML Kit OCR. It returns
       // draft cards only; saving is blocked until the preview screen approves.
-      final preview = await _controller.pickImageForPreview();
+      final preview = await _controller.pickImageForPreview(input: input);
 
       if (!mounted) return;
 
-      setState(() => _isScanningImage = false);
+      setState(() {
+        _isScanningImage = false;
+        _activeOcrInput = null;
+      });
 
       if (preview == null) {
-        setState(() => _statusMessage = 'No image selected.');
+        setState(() => _statusMessage = 'No image selected for OCR.');
         return;
       }
 
@@ -93,6 +147,7 @@ class _ImportScreenState extends State<ImportScreen> {
 
       setState(() {
         _isScanningImage = false;
+        _activeOcrInput = null;
         _statusMessage = 'OCR failed: $e';
       });
     }
@@ -152,7 +207,7 @@ class _ImportScreenState extends State<ImportScreen> {
               ),
               onPressed: (_isImporting || _isScanningImage)
                   ? null
-                  : _pickImageForOcr,
+                  : _showOcrSourceSheet,
               icon: _isScanningImage
                   ? const SizedBox(
                       width: 18,
@@ -167,7 +222,7 @@ class _ImportScreenState extends State<ImportScreen> {
                       color: Color.fromRGBO(133, 90, 251, 1),
                     ),
               label: Text(
-                _isScanningImage ? 'Scanning image...' : 'Crop Image for OCR',
+                _isScanningImage ? _ocrLoadingLabel : 'Image OCR',
                 style: const TextStyle(color: Color.fromRGBO(133, 90, 251, 1)),
               ),
             ),
@@ -178,6 +233,73 @@ class _ImportScreenState extends State<ImportScreen> {
             ),
             const SizedBox(height: 24),
             const ImportFormatCard(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String get _ocrLoadingLabel {
+    if (_activeOcrInput == OcrImageInput.camera) return 'Opening camera...';
+    if (_activeOcrInput == OcrImageInput.gallery) return 'Opening library...';
+    return 'Scanning image...';
+  }
+}
+
+class _OcrSourceTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _OcrSourceTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0F1433),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white10),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: const Color.fromRGBO(133, 90, 251, 1), size: 28),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 13,
+                      height: 1.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Colors.white54),
           ],
         ),
       ),

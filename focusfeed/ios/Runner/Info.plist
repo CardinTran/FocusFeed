@@ -37,6 +37,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>FocusFeed needs photo library access so you can import study images for OCR flashcard drafts.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>FocusFeed needs camera access so you can photograph study material for OCR flashcard drafts.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

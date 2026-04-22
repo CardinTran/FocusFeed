@@ -3,48 +3,24 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-/// Handles Firebase Authentication logic and creates the user's Firestore
-/// document the first time they authenticate.
 class AuthServices {
   final FirebaseAuth auth = FirebaseAuth.instance;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
 
-  /// Must be called once before using Google sign-in.
   Future<void> initGoogleSignIn() async {
     await _googleSignIn.initialize();
   }
 
-  String _mapAuthError(FirebaseAuthException e) {
-    switch (e.code) {
-      case 'invalid-email':
-        return 'Please enter a valid email address.';
-      case 'weak-password':
-        return 'Password must be at least 6 characters.';
-      case 'email-already-in-use':
-        return 'An account already exists for that email.';
-      case 'wrong-password':
-      case 'invalid-credential':
-        return 'Incorrect email or password.';
-      case 'user-not-found':
-        return 'No account found for that email.';
-      case 'too-many-requests':
-        return 'Too many attempts. Please try again later.';
-      case 'network-request-failed':
-        return 'Network error. Check your connection and try again.';
-      default:
-        return e.message ?? 'Authentication failed. Please try again.';
-    }
-  }
-
-  Future<UserCredential> signUpWithEmail(
+  // Sign up with email/password
+  Future<UserCredential?> signUpWithEmail(
     String email,
     String password, {
     String? displayName,
   }) async {
     try {
       final credential = await auth.createUserWithEmailAndPassword(
-        email: email.trim(),
+        email: email,
         password: password,
       );
 
@@ -55,20 +31,25 @@ class AuthServices {
           await user.updateDisplayName(trimmedName);
           await user.reload();
         }
+
         await _createUserDocument(auth.currentUser ?? user);
       }
 
       return credential;
     } on FirebaseAuthException catch (e) {
-      debugPrint('Sign up failed: ${e.code} - ${e.message}');
-      throw Exception(_mapAuthError(e));
+      debugPrint(e.message);
+      return null;
+    } catch (e) {
+      debugPrint(e.toString());
+      return null;
     }
   }
 
-  Future<UserCredential> signInWithEmail(String email, String password) async {
+  // Sign in with email/password
+  Future<UserCredential?> signInWithEmail(String email, String password) async {
     try {
       final credential = await auth.signInWithEmailAndPassword(
-        email: email.trim(),
+        email: email,
         password: password,
       );
 
@@ -79,19 +60,25 @@ class AuthServices {
 
       return credential;
     } on FirebaseAuthException catch (e) {
-      debugPrint('Login failed: ${e.code} - ${e.message}');
-      throw Exception(_mapAuthError(e));
+      debugPrint(e.message);
+      return null;
+    } catch (e) {
+      debugPrint(e.toString());
+      return null;
     }
   }
 
-  Future<UserCredential> signInWithGoogle() async {
+  // Google Sign in
+  Future<UserCredential?> signInWithGoogle() async {
     try {
-      final googleUser = await _googleSignIn.authenticate();
+      final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
+
       final credential = GoogleAuthProvider.credential(
         idToken: googleUser.authentication.idToken,
       );
 
       final userCredential = await auth.signInWithCredential(credential);
+
       final user = userCredential.user;
       if (user != null) {
         await _createUserDocument(user);
@@ -99,35 +86,24 @@ class AuthServices {
 
       return userCredential;
     } on FirebaseAuthException catch (e) {
-      debugPrint('Google sign-in failed: ${e.code} - ${e.message}');
-      throw Exception(_mapAuthError(e));
+      debugPrint(e.message);
+      return null;
     } catch (e) {
-      debugPrint('Google sign-in failed: $e');
-      throw Exception('Google sign-in failed. Please try again.');
+      debugPrint(e.toString());
+      return null;
     }
   }
 
-  Future<void> sendPasswordResetEmail(String email) async {
-    try {
-      await auth.sendPasswordResetEmail(email: email.trim());
-    } on FirebaseAuthException catch (e) {
-      debugPrint('Password reset failed: ${e.code} - ${e.message}');
-      throw Exception(_mapAuthError(e));
-    }
-  }
-
+  // Sign out
   Future<void> signOut() async {
-    try {
-      await _googleSignIn.signOut();
-    } catch (e) {
-      debugPrint('Google sign-out cleanup failed: $e');
-    }
-
+    await _googleSignIn.signOut();
     await auth.signOut();
   }
 
+  // Who is logged in right now?
   User? get currentUser => auth.currentUser;
 
+  // A stream that fires whenever login state changes
   Stream<User?> get authStateChanges => auth.authStateChanges();
 
   Future<void> _createUserDocument(User user) async {
@@ -139,7 +115,7 @@ class AuthServices {
         'uid': user.uid,
         'email': user.email,
         'displayName': user.displayName,
-        'displayNameLower': user.displayName?.toLowerCase() ?? '',
+        'displayNameLower': user.displayName?.toLowerCase() ?? '', 
         'createdAt': FieldValue.serverTimestamp(),
       });
     }

@@ -15,7 +15,7 @@ class ImportFormatCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Import formats',
+            'Required file format',
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -24,7 +24,7 @@ class ImportFormatCard extends StatelessWidget {
           ),
           SizedBox(height: 10),
           Text(
-            'Text files support Term|Answer. Image OCR lets you crop first, then splits readable lines into draft cards and detects ":", "-", or "|" when possible.',
+            'Term|Answer',
             style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.5),
           ),
         ],

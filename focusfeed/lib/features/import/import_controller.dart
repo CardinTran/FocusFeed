@@ -3,10 +3,7 @@ import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:focusfeed/features/feed/feed_item.dart';
-import 'package:focusfeed/features/import/ocr_import_service.dart';
-import 'package:focusfeed/features/import/parsed_flashcard.dart';
 
-import 'card_generator_service.dart';
 import 'import_parser.dart';
 import 'import_repository.dart';
 
@@ -26,24 +23,16 @@ class ImportController {
   final FirebaseAuth auth;
   final ImportParser parser;
   final ImportRepository repository;
-  final OcrImportService ocrService;
-  final CardGeneratorService generator;
 
   ImportController({
     FirebaseAuth? auth,
     ImportParser? parser,
     ImportRepository? repository,
-    OcrImportService? ocrService,
-    CardGeneratorService? generator,
   }) : auth = auth ?? FirebaseAuth.instance,
        parser = parser ?? const ImportParser(),
-       repository = repository ?? ImportRepository(),
-       ocrService = ocrService ?? OcrImportService(),
-       generator = generator ?? const CardGeneratorService();
+       repository = repository ?? ImportRepository();
 
   Future<ImportResult> pickAndImportFile() async {
-    // Existing text-file import path. It still saves immediately because users
-    // are expected to provide already structured text files.
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['txt', 'csv'],
@@ -70,82 +59,15 @@ class ImportController {
     final parsedCards = parser.parseFlashcards(rawText);
 
     if (parsedCards.isEmpty) {
-      throw Exception('No usable text found in the selected file.');
+      throw Exception('No valid flashcards found. Use format: term|answer');
     }
-
-    final generatedCards = generator.generate(parsedCards);
 
     final importId = await repository.saveImport(
       userId: user.uid,
       fileName: pickedFile.name,
       rawText: rawText,
-      cards: generatedCards,
-    );
-
-    final items = await repository.loadFeedItemsFromImport(
-      userId: user.uid,
-      importId: importId,
-    );
-
-    return ImportResult(
-      items: items,
-      fileName: pickedFile.name,
-      message: 'Imported ${generatedCards.length} cards successfully.',
-    );
-  }
-
-  Future<OcrPreviewResult?> pickImageForPreview() async {
-    // OCR imports always stop at a draft preview. OCR output can be incomplete,
-    // out of order, or noisy even when the source image looks well formatted.
-    final draft = await ocrService.pickImageAndExtractText();
-    if (draft == null) return null;
-
-    final parsedCards = parser.parseFlashcards(draft.rawText);
-
-    return OcrPreviewResult(
-      fileName: draft.imageName,
-      rawText: draft.rawText,
       cards: parsedCards,
     );
-  }
-
-  Future<ImportResult> saveOcrCards({
-    required String fileName,
-    required String rawText,
-    required List<ParsedFlashcard> cards,
-  }) async {
-    final user = auth.currentUser;
-    if (user == null) {
-      throw Exception('You must be signed in.');
-    }
-
-    // Blank draft rows are ignored so users can add/remove freely in preview.
-    final approvedCards = cards
-        .where(
-          (card) =>
-              card.term.trim().isNotEmpty || card.answer.trim().isNotEmpty,
-        )
-        .map(
-          (card) => ParsedFlashcard(
-            term: card.term.trim(),
-            answer: card.answer.trim(),
-          ),
-        )
-        .toList();
-
-    if (approvedCards.isEmpty) {
-      throw Exception('Add at least one card before saving.');
-    }
-
-    final generatedCards = generator.generate(approvedCards);
-
-    final importId = await repository.saveImport(
-      userId: user.uid,
-      fileName: fileName,
-      rawText: rawText,
-      cards: generatedCards,
-      sourceType: 'image_ocr',
-    );
 
     final items = await repository.loadFeedItemsFromImport(
       userId: user.uid,
@@ -154,22 +76,8 @@ class ImportController {
 
     return ImportResult(
       items: items,
-      fileName: fileName,
-      message: 'Saved ${generatedCards.length} cards from OCR.',
+      fileName: pickedFile.name,
+      message: 'Imported ${parsedCards.length} flashcards successfully.',
     );
   }
-
-  Future<void> dispose() => ocrService.dispose();
-}
-
-class OcrPreviewResult {
-  final String fileName;
-  final String rawText;
-  final List<ParsedFlashcard> cards;
-
-  const OcrPreviewResult({
-    required this.fileName,
-    required this.rawText,
-    required this.cards,
-  });
 }

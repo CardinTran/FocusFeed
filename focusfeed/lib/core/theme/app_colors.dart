@@ -32,21 +32,4 @@ class AppColors {
   static const Color cardExplainer = green;
   static const Color cardProgress = purpleLight;
   static const Color cardChallenge = redCoral;
-
-  // Onboarding / profile setup flow colors
-  // These are specific to the setup wizard screens and differ slightly
-  // from the main app dark palette to create a distinct onboarding feel.
-
-  /// Deep dark navy used as the full-screen background in the setup flow.
-  static const Color setupBackground = Color(0xFF0B0F2A);
-
-  /// Slightly lighter navy used as the card/panel surface in the setup flow.
-  static const Color setupCard = Color(0xFF151A3B);
-
-  /// Dark fill color used inside text fields and unselected chips in the setup flow.
-  static const Color setupInput = Color(0xFF0F1433);
-
-  /// Brighter purple accent used for buttons, selected chips, and active borders
-  /// in the auth and setup screens. Distinct from [purple] (#6C5CE7).
-  static const Color purpleBright = Color(0xFF855AFB);
 }

@@ -30,7 +30,7 @@ class ImportHeaderCard extends StatelessWidget {
           ),
           SizedBox(height: 8),
           Text(
-            'Import .txt/.csv notes or crop an image for OCR.',
+            'Import a .txt',
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.white70, fontSize: 14),
           ),

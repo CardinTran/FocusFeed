@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'friend_model.dart';
 import 'friend_service.dart';
-import 'friend_profile_screen.dart';
 
 class FriendsScreen extends StatefulWidget {
   const FriendsScreen({super.key});
@@ -172,12 +171,6 @@ class _FriendsScreenState extends State<FriendsScreen> {
           itemBuilder: (_, i) {
             final f = friends[i];
             return ListTile(
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => FriendProfileScreen(friend: f),
-                ),
-              ),
               leading: CircleAvatar(
                 backgroundColor: _accent.withOpacity(0.2),
                 child: const Icon(Icons.person, color: _accent),

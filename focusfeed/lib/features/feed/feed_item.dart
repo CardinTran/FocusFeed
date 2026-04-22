@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum FeedItemType { article, flashcard, quiz, fillInBlank, explainer }
+enum FeedItemType { article, flashcard }
 
 class FeedItem {
   final String id;
@@ -18,14 +18,6 @@ class FeedItem {
   final String? question;
   final String? answer;
   final IconData? deckIcon;
-  final int seenCount;
-  final DateTime? lastSeenAt;
-  final DateTime? lastLearnedAt;
-  final DateTime? resurfaceAfter;
-
-  final List<String>? options; // quiz: 4 answer choices
-  final int? correctIndex; // quiz: which index options is correct
-  final String? sentence; // fillInBlank
 
   bool learned;
   bool saved;
@@ -43,15 +35,8 @@ class FeedItem {
     this.question,
     this.answer,
     this.deckIcon,
-    this.seenCount = 0,
-    this.lastSeenAt,
-    this.lastLearnedAt,
-    this.resurfaceAfter,
     this.learned = false,
     this.saved = false,
-    this.options,
-    this.correctIndex,
-    this.sentence,
   });
 
   factory FeedItem.flashcard({
@@ -64,10 +49,6 @@ class FeedItem {
     required String answer,
     String? importId,
     IconData? deckIcon,
-    int seenCount = 0,
-    DateTime? lastSeenAt,
-    DateTime? lastLearnedAt,
-    DateTime? resurfaceAfter,
     bool learned = false,
     bool saved = false,
   }) {
@@ -82,10 +63,6 @@ class FeedItem {
       question: question,
       answer: answer,
       deckIcon: deckIcon,
-      seenCount: seenCount,
-      lastSeenAt: lastSeenAt,
-      lastLearnedAt: lastLearnedAt,
-      resurfaceAfter: resurfaceAfter,
       learned: learned,
       saved: saved,
     );
@@ -99,10 +76,6 @@ class FeedItem {
     required String title,
     required String description,
     String? importId,
-    int seenCount = 0,
-    DateTime? lastSeenAt,
-    DateTime? lastLearnedAt,
-    DateTime? resurfaceAfter,
     bool learned = false,
     bool saved = false,
   }) {
@@ -115,140 +88,8 @@ class FeedItem {
       categoryBg: categoryBg,
       title: title,
       description: description,
-      seenCount: seenCount,
-      lastSeenAt: lastSeenAt,
-      lastLearnedAt: lastLearnedAt,
-      resurfaceAfter: resurfaceAfter,
       learned: learned,
       saved: saved,
-    );
-  }
-
-  factory FeedItem.quiz({
-    required String id,
-    required String category,
-    required Color categoryColor,
-    required Color categoryBg,
-    required String question,
-    required List<String> options,
-    required int correctIndex,
-    String? importId,
-    bool learned = false,
-    bool saved = false,
-  }) {
-    return FeedItem(
-      id: id,
-      importId: importId,
-      type: FeedItemType.quiz,
-      category: category,
-      categoryColor: categoryColor,
-      categoryBg: categoryBg,
-      deckTitle: 'QUICK QUIZ',
-      question: question,
-      options: options,
-      correctIndex: correctIndex,
-      learned: learned,
-      saved: saved,
-    );
-  }
-
-  factory FeedItem.fillInBlank({
-    required String id,
-    required String category,
-    required Color categoryColor,
-    required Color categoryBg,
-    required String sentence,
-    required String answer,
-    String? importId,
-    bool learned = false,
-    bool saved = false,
-  }) {
-    return FeedItem(
-      id: id,
-      importId: importId,
-      type: FeedItemType.fillInBlank,
-      category: category,
-      categoryColor: categoryColor,
-      categoryBg: categoryBg,
-      deckTitle: 'FILL IN THE BLANK',
-      sentence: sentence,
-      answer: answer,
-      learned: learned,
-      saved: saved,
-    );
-  }
-
-  factory FeedItem.explainer({
-    required String id,
-    required String category,
-    required Color categoryColor,
-    required Color categoryBg,
-    required String title,
-    required String body,
-    String? importId,
-    bool learned = false,
-    bool saved = false,
-  }) {
-    return FeedItem(
-      id: id,
-      importId: importId,
-      type: FeedItemType.explainer,
-      category: category,
-      categoryColor: categoryColor,
-      categoryBg: categoryBg,
-      deckTitle: 'MICRO-EXPLAINER',
-      title: title,
-      description: body,
-      learned: learned,
-      saved: saved,
-    );
-  }
-
-  FeedItem copyWith({
-    String? id,
-    String? importId,
-    FeedItemType? type,
-    String? category,
-    Color? categoryColor,
-    Color? categoryBg,
-    String? title,
-    String? description,
-    String? deckTitle,
-    String? question,
-    String? answer,
-    IconData? deckIcon,
-    int? seenCount,
-    DateTime? lastSeenAt,
-    DateTime? lastLearnedAt,
-    DateTime? resurfaceAfter,
-    bool? learned,
-    bool? saved,
-    List<String>? options,
-    int? correctIndex,
-    String? sentence,
-  }) {
-    return FeedItem(
-      id: id ?? this.id,
-      importId: importId ?? this.importId,
-      type: type ?? this.type,
-      category: category ?? this.category,
-      categoryColor: categoryColor ?? this.categoryColor,
-      categoryBg: categoryBg ?? this.categoryBg,
-      title: title ?? this.title,
-      description: description ?? this.description,
-      deckTitle: deckTitle ?? this.deckTitle,
-      question: question ?? this.question,
-      answer: answer ?? this.answer,
-      deckIcon: deckIcon ?? this.deckIcon,
-      seenCount: seenCount ?? this.seenCount,
-      lastSeenAt: lastSeenAt ?? this.lastSeenAt,
-      lastLearnedAt: lastLearnedAt ?? this.lastLearnedAt,
-      resurfaceAfter: resurfaceAfter ?? this.resurfaceAfter,
-      learned: learned ?? this.learned,
-      saved: saved ?? this.saved,
-      options: options ?? this.options,
-      correctIndex: correctIndex ?? this.correctIndex,
-      sentence: sentence ?? this.sentence,
     );
   }
 }

@@ -1,38 +1,30 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:focusfeed/features/feed/feed_controller.dart';
 import 'package:focusfeed/features/feed/feed_item.dart';
 import 'package:focusfeed/features/feed/widgets/feed_post_card.dart';
 
 class FeedScreen extends StatefulWidget {
   final List<FeedItem> items;
-  final FeedController controller;
   final VoidCallback onUpdate;
 
-  const FeedScreen({
-    super.key,
-    required this.items,
-    required this.controller,
-    required this.onUpdate,
-  });
+  const FeedScreen({super.key, required this.items, required this.onUpdate});
 
   @override
   State<FeedScreen> createState() => _FeedScreenState();
 }
 
 class _FeedScreenState extends State<FeedScreen> {
+  final Random _random = Random();
+
+  late List<FeedItem> _cycleItems;
   final List<FeedItem> _feedQueue = [];
-  int _lastSeenIndex = -1;
 
   @override
   void initState() {
     super.initState();
+    _cycleItems = [];
+    _rebuildCycle();
     _fillQueue();
-
-    // The first card is visible immediately, so the feed records it after the
-    // first frame instead of waiting for the first swipe event.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _recordVisibleItem(0);
-    });
   }
 
   @override
@@ -50,23 +42,19 @@ class _FeedScreenState extends State<FeedScreen> {
       }
     }
 
-    for (int i = _feedQueue.length - 1; i >= 0; i--) {
-      final item = _feedQueue[i];
-      final updated = latestById[item.id];
+    _cycleItems = _cycleItems
+        .map((item) => latestById[item.id] ?? item)
+        .toList();
 
-      // If an item no longer exists in the source stream, remove it from the
-      // local queue so pagination does not hold onto stale content.
-      if (updated == null) {
-        _feedQueue.removeAt(i);
-        continue;
-      }
-
-      _feedQueue[i] = updated;
+    if (oldWidget.items.length != widget.items.length) {
+      _rebuildCycle();
+      _fillQueue(reset: true);
     }
+  }
 
-    if (_feedQueue.isEmpty && widget.items.isNotEmpty) {
-      _fillQueue();
-    }
+  void _rebuildCycle() {
+    _cycleItems = List<FeedItem>.from(widget.items);
+    _cycleItems.shuffle(_random);
   }
 
   void _fillQueue({bool reset = false}) {
@@ -76,26 +64,15 @@ class _FeedScreenState extends State<FeedScreen> {
 
     if (widget.items.isEmpty) return;
 
-    final recentIds = _feedQueue.reversed.map((item) => item.id).toList();
-    final nextBatch = widget.controller.buildNextBatch(
-      items: widget.items,
-      recentlyQueuedIds: recentIds,
-    );
+    const int batchSize = 20;
 
-    _feedQueue.addAll(nextBatch);
-  }
+    for (int i = 0; i < batchSize; i++) {
+      if (_cycleItems.isEmpty) {
+        _rebuildCycle();
+      }
 
-  Future<void> _recordVisibleItem(int index) async {
-    if (index < 0 || index >= _feedQueue.length) {
-      return;
+      _feedQueue.add(_cycleItems.removeAt(0));
     }
-
-    if (_lastSeenIndex == index) {
-      return;
-    }
-
-    _lastSeenIndex = index;
-    await widget.controller.markSeen(_feedQueue[index]);
   }
 
   @override
@@ -122,9 +99,7 @@ class _FeedScreenState extends State<FeedScreen> {
             PageView.builder(
               scrollDirection: Axis.vertical,
               itemCount: _feedQueue.length,
-              onPageChanged: (index) async {
-                await _recordVisibleItem(index);
-
+              onPageChanged: (index) {
                 if (index >= _feedQueue.length - 5) {
                   setState(() {
                     _fillQueue();
@@ -136,7 +111,6 @@ class _FeedScreenState extends State<FeedScreen> {
                 return FeedPostCard(
                   key: ValueKey('${item.question}-${item.answer}-$index'),
                   item: item,
-                  controller: widget.controller,
                   onChanged: widget.onUpdate,
                 );
               },

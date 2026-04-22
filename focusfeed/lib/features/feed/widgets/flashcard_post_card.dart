@@ -1,17 +1,16 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:focusfeed/features/feed/feed_controller.dart';
 import 'package:focusfeed/features/feed/feed_item.dart';
 import 'package:focusfeed/features/feed/widgets/feed_action_buttons.dart';
+import 'package:focusfeed/features/import/import_repository.dart';
 
 class FlashcardPostCard extends StatefulWidget {
   final FeedItem item;
-  final FeedController controller;
   final VoidCallback onChanged;
 
   const FlashcardPostCard({
     super.key,
     required this.item,
-    required this.controller,
     required this.onChanged,
   });
 
@@ -22,7 +21,6 @@ class FlashcardPostCard extends StatefulWidget {
 class _FlashcardPostCardState extends State<FlashcardPostCard>
     with SingleTickerProviderStateMixin {
   bool _showAnswer = false;
-  bool _isUpdating = false;
   late AnimationController _controller;
   late Animation<double> _animation;
 
@@ -70,70 +68,6 @@ class _FlashcardPostCardState extends State<FlashcardPostCard>
         ),
       ),
     );
-  }
-
-  Future<void> _toggleLearned() async {
-    if (_isUpdating) {
-      return;
-    }
-
-    final newValue = !widget.item.learned;
-
-    setState(() {
-      _isUpdating = true;
-      widget.item.learned = newValue;
-    });
-
-    try {
-      await widget.controller.setLearned(widget.item, newValue);
-      widget.onChanged();
-    } catch (_) {
-      // Revert the optimistic update if persistence fails so the UI does not
-      // drift away from the backend state.
-      if (mounted) {
-        setState(() {
-          widget.item.learned = !newValue;
-        });
-      }
-      rethrow;
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isUpdating = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _toggleSaved() async {
-    if (_isUpdating) {
-      return;
-    }
-
-    final newValue = !widget.item.saved;
-
-    setState(() {
-      _isUpdating = true;
-      widget.item.saved = newValue;
-    });
-
-    try {
-      await widget.controller.setSaved(widget.item, newValue);
-      widget.onChanged();
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          widget.item.saved = !newValue;
-        });
-      }
-      rethrow;
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isUpdating = false;
-        });
-      }
-    }
   }
 
   @override
@@ -262,7 +196,25 @@ class _FlashcardPostCardState extends State<FlashcardPostCard>
               iconColor: widget.item.learned
                   ? Colors.greenAccent
                   : Colors.white,
-              onTap: _toggleLearned,
+              onTap: () async {
+                final newValue = !widget.item.learned;
+
+                setState(() {
+                  widget.item.learned = newValue;
+                });
+
+                final user = FirebaseAuth.instance.currentUser;
+                if (user == null || widget.item.importId == null) return;
+
+                await ImportRepository().updateLearned(
+                  userId: user.uid,
+                  importId: widget.item.importId!,
+                  cardId: widget.item.id,
+                  learned: newValue,
+                );
+
+                widget.onChanged();
+              },
             ),
             BottomActionButton(
               icon: widget.item.saved ? Icons.bookmark : Icons.bookmark_border,
@@ -270,7 +222,25 @@ class _FlashcardPostCardState extends State<FlashcardPostCard>
               iconColor: widget.item.saved
                   ? const Color.fromRGBO(133, 90, 251, 1)
                   : Colors.white,
-              onTap: _toggleSaved,
+              onTap: () async {
+                final newValue = !widget.item.saved;
+
+                setState(() {
+                  widget.item.saved = newValue;
+                });
+
+                final user = FirebaseAuth.instance.currentUser;
+                if (user == null || widget.item.importId == null) return;
+
+                await ImportRepository().updateSaved(
+                  userId: user.uid,
+                  importId: widget.item.importId!,
+                  cardId: widget.item.id,
+                  saved: newValue,
+                );
+
+                widget.onChanged();
+              },
             ),
           ],
         ),

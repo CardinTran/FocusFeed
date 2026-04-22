@@ -1,8 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:focusfeed/features/feed/feed_item.dart';
-import 'package:focusfeed/features/feed/feed_policy.dart';
-import 'package:focusfeed/features/import/generated_card.dart';
+import 'package:focusfeed/features/import/parsed_flashcard.dart';
 
 class ImportRepository {
   final FirebaseFirestore firestore;
@@ -14,8 +13,7 @@ class ImportRepository {
     required String userId,
     required String fileName,
     required String rawText,
-    required List<GeneratedCard> cards,
-    String sourceType = 'file',
+    required List<ParsedFlashcard> cards,
   }) async {
     final importRef = await firestore
         .collection('users')
@@ -25,7 +23,6 @@ class ImportRepository {
           'fileName': fileName,
           'rawText': rawText,
           'cardCount': cards.length,
-          'sourceType': sourceType,
           'createdAt': FieldValue.serverTimestamp(),
         });
 
@@ -36,15 +33,11 @@ class ImportRepository {
       final cardRef = importRef.collection('cards').doc();
 
       batch.set(cardRef, {
-        'cardType': card.cardType,
-        'content': card.content,
+        'term': card.term,
+        'answer': card.answer,
         'order': i,
         'isSaved': false,
         'isLearned': false,
-        'seenCount': 0,
-        'lastSeenAt': null,
-        'lastLearnedAt': null,
-        'resurfaceAfter': null,
         'createdAt': FieldValue.serverTimestamp(),
       });
     }
@@ -92,37 +85,12 @@ class ImportRepository {
         .update({'isSaved': saved});
   }
 
-  /// Records that the user reached a card in the feed.
-  ///
-  /// The adaptive ranker uses this lightweight signal to avoid over-serving the
-  /// same cards in a short window.
-  Future<void> markSeen({
-    required String userId,
-    required String importId,
-    required String cardId,
-  }) async {
-    await firestore
-        .collection('users')
-        .doc(userId)
-        .collection('imports')
-        .doc(importId)
-        .collection('cards')
-        .doc(cardId)
-        .update({
-          'seenCount': FieldValue.increment(1),
-          'lastSeenAt': FieldValue.serverTimestamp(),
-        });
-  }
-
   Future<void> updateLearned({
     required String userId,
     required String importId,
     required String cardId,
     required bool learned,
   }) async {
-    final learnedAt = DateTime.now();
-    final resurfaceAfter = learnedAt.add(FeedPolicy.learnedResurfaceDelay);
-
     await firestore
         .collection('users')
         .doc(userId)
@@ -130,71 +98,7 @@ class ImportRepository {
         .doc(importId)
         .collection('cards')
         .doc(cardId)
-        .update({
-          'isLearned': learned,
-          'lastLearnedAt': learned ? Timestamp.fromDate(learnedAt) : null,
-          'resurfaceAfter': learned ? Timestamp.fromDate(resurfaceAfter) : null,
-        });
-  }
-
-  FeedItem _docToFeedItem(Map<String, dynamic> data, String docId, String importId) {
-    final cardType = data['cardType'] as String? ?? 'flashcard';
-    final content = (data['content'] as Map<String, dynamic>?) ?? {};
-    final isSaved = data['isSaved'] as bool? ?? false;
-    final isLearned = data['isLearned'] as bool? ?? false;
-
-    switch (cardType) {
-      case 'quiz':
-        return FeedItem.quiz(
-          id: docId,
-          importId: importId,
-          category: 'Imported',
-          categoryColor: const Color(0xFFFF6B6B),
-          categoryBg: const Color(0x1AFF6B6B),
-          question: content['question'] as String? ?? '',
-          options: List<String>.from(content['options'] as List? ?? []),
-          correctIndex: content['correctIndex'] as int? ?? 0,
-          saved: isSaved,
-          learned: isLearned,
-        );
-      case 'fillInBlank':
-        return FeedItem.fillInBlank(
-          id: docId,
-          importId: importId,
-          category: 'Imported',
-          categoryColor: const Color(0xFFFDCB6E),
-          categoryBg: const Color(0x1AFDCB6E),
-          sentence: content['sentence'] as String? ?? '',
-          answer: content['answer'] as String? ?? '',
-          saved: isSaved,
-          learned: isLearned,
-        );
-      case 'explainer':
-        return FeedItem.explainer(
-          id: docId,
-          importId: importId,
-          category: 'Imported',
-          categoryColor: const Color(0xFF00B894),
-          categoryBg: const Color(0x1A00B894),
-          title: content['title'] as String? ?? '',
-          body: content['body'] as String? ?? '',
-          saved: isSaved,
-          learned: isLearned,
-        );
-      default: // flashcard
-        return FeedItem.flashcard(
-          id: docId,
-          importId: importId,
-          category: 'Imported',
-          categoryColor: const Color(0xFF855AFB),
-          categoryBg: const Color(0x1A855AFB),
-          deckTitle: 'FLASHCARD',
-          question: content['front'] as String? ?? '',
-          answer: content['back'] as String? ?? '',
-          saved: isSaved,
-          learned: isLearned,
-        );
-    }
+        .update({'isLearned': learned});
   }
 
   Future<List<FeedItem>> loadFeedItemsFromImport({
@@ -210,9 +114,22 @@ class ImportRepository {
         .orderBy('order')
         .get();
 
-    return snapshot.docs
-        .map((doc) => _docToFeedItem(doc.data(), doc.id, importId))
-        .toList();
+    return snapshot.docs.map<FeedItem>((doc) {
+      final data = doc.data();
+
+      return FeedItem.flashcard(
+        id: doc.id,
+        importId: importId,
+        category: 'Imported',
+        categoryColor: const Color(0xFF855AFB),
+        categoryBg: const Color(0x1A855AFB),
+        deckTitle: 'FLASHCARD',
+        question: data['term'] ?? '',
+        answer: data['answer'] ?? '',
+        saved: data['isSaved'] ?? false,
+        learned: data['isLearned'] ?? false,
+      );
+    }).toList();
   }
 
   Stream<List<FeedItem>> streamAllFeedItemsForUser(String userId) {
@@ -232,13 +149,26 @@ class ImportRepository {
                 .get();
 
             for (final doc in cardsSnapshot.docs) {
-              allItems.add(_docToFeedItem(doc.data(), doc.id, importDoc.id));
+              final data = doc.data();
+
+              allItems.add(
+                FeedItem.flashcard(
+                  id: doc.id,
+                  importId: importDoc.id,
+                  category: 'Imported',
+                  categoryColor: const Color(0xFF855AFB),
+                  categoryBg: const Color(0x1A855AFB),
+                  deckTitle: 'FLASHCARD',
+                  question: data['term'] ?? '',
+                  answer: data['answer'] ?? '',
+                  saved: data['isSaved'] ?? false,
+                  learned: data['isLearned'] ?? false,
+                ),
+              );
             }
           }
 
           return allItems;
         });
   }
-
-
 }

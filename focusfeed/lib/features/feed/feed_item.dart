@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum FeedItemType { article, flashcard }
+enum FeedItemType { article, flashcard, quiz, fillInBlank, explainer }
 
 class FeedItem {
   final String id;
@@ -18,6 +18,10 @@ class FeedItem {
   final String? question;
   final String? answer;
   final IconData? deckIcon;
+
+  final List<String>? options; // quiz: 4 answer choices
+  final int? correctIndex; // quiz: which index options is correct
+  final String? sentence; // fillInBlank
 
   bool learned;
   bool saved;
@@ -37,6 +41,9 @@ class FeedItem {
     this.deckIcon,
     this.learned = false,
     this.saved = false,
+    this.options,
+    this.correctIndex,
+    this.sentence,
   });
 
   factory FeedItem.flashcard({
@@ -92,4 +99,83 @@ class FeedItem {
       saved: saved,
     );
   }
+  factory FeedItem.quiz({
+    required String id,
+    required String category,
+    required Color categoryColor,
+    required Color categoryBg,
+    required String question,
+    required List<String> options,
+    required int correctIndex,
+    String? importId,
+    bool learned = false,
+    bool saved = false,
+
+  }) {
+    return FeedItem(
+    id: id,
+    importId: importId,
+    type: FeedItemType.quiz,
+    category: category,
+    categoryColor: categoryColor,
+    categoryBg: categoryBg,
+    deckTitle: 'QUICK QUIZ',
+    question: question,
+    options: options,
+    correctIndex: correctIndex,
+    learned: learned,
+    saved: saved,
+    );
+  }
+  factory FeedItem.fillInBlank({
+    required String id,
+    required String category,
+    required Color categoryColor,
+    required Color categoryBg,
+    required String sentence,
+    required String answer,
+    String? importId,
+    bool learned = false,
+    bool saved = false,
+  }) {
+    return FeedItem(
+      id: id,
+      importId: importId,
+      type: FeedItemType.fillInBlank,
+      category: category,
+      categoryColor: categoryColor,
+      categoryBg: categoryBg,
+      deckTitle: 'FILL IN THE BLANK',
+      sentence: sentence,
+      answer: answer,
+      learned: learned,
+      saved: saved,
+    );
+  }
+  factory FeedItem.explainer({
+    required String id,
+    required String category,
+    required Color categoryColor,
+    required Color categoryBg,
+    required String title,
+    required String body,
+    String? importId,
+    bool learned = false,
+    bool saved = false,
+  }) {
+    return FeedItem(
+      id: id,
+      importId: importId,
+      type: FeedItemType.explainer,
+      category: category,
+      categoryColor: categoryColor,
+      categoryBg: categoryBg,
+      deckTitle: 'MICRO-EXPLAINER',
+      title: title,
+      description: body,
+      learned: learned,
+      saved: saved,
+    );
+  }
+  
 }

@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:focusfeed/features/feed/feed_item.dart';
 
+import 'card_generator_service.dart';
 import 'import_parser.dart';
 import 'import_repository.dart';
 
@@ -23,14 +24,17 @@ class ImportController {
   final FirebaseAuth auth;
   final ImportParser parser;
   final ImportRepository repository;
+  final CardGeneratorService generator;
 
   ImportController({
     FirebaseAuth? auth,
     ImportParser? parser,
     ImportRepository? repository,
+    CardGeneratorService? generator,
   }) : auth = auth ?? FirebaseAuth.instance,
        parser = parser ?? const ImportParser(),
-       repository = repository ?? ImportRepository();
+       repository = repository ?? ImportRepository(),
+       generator = generator ?? const CardGeneratorService();
 
   Future<ImportResult> pickAndImportFile() async {
     final result = await FilePicker.platform.pickFiles(
@@ -62,11 +66,13 @@ class ImportController {
       throw Exception('No valid flashcards found. Use format: term|answer');
     }
 
+    final generatedCards = generator.generate(parsedCards);
+
     final importId = await repository.saveImport(
       userId: user.uid,
       fileName: pickedFile.name,
       rawText: rawText,
-      cards: parsedCards,
+      cards: generatedCards,
     );
 
     final items = await repository.loadFeedItemsFromImport(
@@ -77,7 +83,7 @@ class ImportController {
     return ImportResult(
       items: items,
       fileName: pickedFile.name,
-      message: 'Imported ${parsedCards.length} flashcards successfully.',
+      message: 'Imported ${generatedCards.length} cards successfully.',
     );
   }
 }

@@ -35,10 +35,10 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>FocusFeed needs photo library access so you can import study images for OCR flashcard drafts.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>FocusFeed needs photo library access so you can import study images for OCR flashcard drafts.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

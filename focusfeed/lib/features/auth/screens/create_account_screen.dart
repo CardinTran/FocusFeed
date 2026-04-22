@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:focusfeed/features/auth/screens/app_entry_screen.dart';
-import 'package:focusfeed/features/auth/screens/login_screen.dart';
 import 'package:focusfeed/features/auth/services/auth_service.dart';
 import 'package:focusfeed/features/profile/screens/profile_setup_screen.dart';
 
@@ -19,16 +18,17 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
 
   final _formKey = GlobalKey<FormState>();
   final _confirmPasswordFieldKey = GlobalKey<FormFieldState<String>>();
+  bool _isLoading = false;
+  String? _authError;
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+
   final auth = AuthServices();
 
   bool _showPassword = false;
   bool _showConfirmPassword = false;
-  bool _isLoading = false;
-  String? _authError;
 
   bool isValidEmail(String email) {
     final emailRegex = RegExp(
@@ -159,35 +159,36 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Back button
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          Icons.arrow_back,
-                          color: Color.fromRGBO(133, 90, 251, 1),
-                          size: 18,
-                        ),
+                        Icon(Icons.arrow_back, color: Color.fromRGBO(133, 90, 251, 1), size: 18),
                         SizedBox(width: 4),
-                        Text(
-                          "Back",
-                          style: TextStyle(
-                            color: Color.fromRGBO(133, 90, 251, 1),
-                          ),
-                        ),
+                        Text("Back", style: TextStyle(color: Color.fromRGBO(133, 90, 251, 1))),
                       ],
                     ),
                   ),
+
                   const SizedBox(height: 30),
+
+                  // Logo
                   Center(
-                    child: Image.asset(
-                      'web/ff-logo-transparent.png',
-                      width: 80,
+                    child: Container(
                       height: 80,
+                      width: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
                   ),
+
                   const SizedBox(height: 20),
+
+                  // Title
                   const Center(
                     child: Text(
                       "Create Account",
@@ -198,49 +199,50 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       ),
                     ),
                   ),
+
                   const SizedBox(height: 30),
+
+                  // Full Name
                   _InputField(
                     hint: "Full Name",
                     icon: Icons.person_outline,
                     controller: nameController,
                     validator: validateName,
-                    textInputAction: TextInputAction.next,
                   ),
+
                   const SizedBox(height: 14),
+
+                  // Email
                   _InputField(
                     hint: "Email",
                     icon: Icons.email_outlined,
                     keyboardType: TextInputType.emailAddress,
                     controller: emailController,
                     validator: validateEmail,
-                    textInputAction: TextInputAction.next,
                   ),
+
                   const SizedBox(height: 14),
+
+                  // Password
                   _InputField(
                     hint: "Password",
                     icon: Icons.lock_outline,
                     obscure: !_showPassword,
                     controller: passwordController,
                     validator: validatePassword,
-                    textInputAction: TextInputAction.next,
-                    onChanged: (_) {
-                      if (confirmPasswordController.text.isNotEmpty) {
-                        _confirmPasswordFieldKey.currentState?.validate();
-                      }
-                    },
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _showPassword
-                            ? Icons.visibility_off_outlined
-                            : Icons.remove_red_eye_outlined,
+                        _showPassword ? Icons.visibility_off_outlined : Icons.remove_red_eye_outlined,
                         color: Colors.white38,
                         size: 20,
                       ),
-                      onPressed: () =>
-                          setState(() => _showPassword = !_showPassword),
+                      onPressed: () => setState(() => _showPassword = !_showPassword),
                     ),
                   ),
+
                   const SizedBox(height: 14),
+
+                  // Confirm Password
                   _InputField(
                     fieldKey: _confirmPasswordFieldKey,
                     hint: "Confirm Password",
@@ -248,21 +250,18 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     obscure: !_showConfirmPassword,
                     controller: confirmPasswordController,
                     validator: validateConfirmPassword,
-                    textInputAction: TextInputAction.done,
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _showConfirmPassword
-                            ? Icons.visibility_off_outlined
-                            : Icons.remove_red_eye_outlined,
+                        _showConfirmPassword ? Icons.visibility_off_outlined : Icons.remove_red_eye_outlined,
                         color: Colors.white38,
                         size: 20,
                       ),
-                      onPressed: () => setState(
-                        () => _showConfirmPassword = !_showConfirmPassword,
-                      ),
+                      onPressed: () => setState(() => _showConfirmPassword = !_showConfirmPassword),
                     ),
                   ),
-                  const SizedBox(height: 24),
+
+                  const SizedBox(height: 16),
+
                   if (_authError != null) ...[
                     Text(
                       _authError!,
@@ -270,13 +269,15 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     ),
                     const SizedBox(height: 12),
                   ],
+
+                  const SizedBox(height: 8),
+
+                  // Create Account Button
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromRGBO(133, 90, 251, 1),
                       minimumSize: const Size(double.infinity, 52),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     onPressed: _isLoading ? null : _handleCreateAccount,
                     child: _isLoading
@@ -290,71 +291,46 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           )
                         : const Text(
                             "Create Account",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                   ),
+
                   const SizedBox(height: 20),
+
                   if (_googleSignInEnabled) ...[
+                    // Or continue with
                     Row(
                       children: [
                         const Expanded(child: Divider(color: Colors.white24)),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Text(
-                            "Or continue with",
-                            style: TextStyle(
-                              color: Colors.white38,
-                              fontSize: 13,
-                            ),
-                          ),
+                          child: Text("Or continue with", style: TextStyle(color: Colors.white38, fontSize: 13)),
                         ),
                         const Expanded(child: Divider(color: Colors.white24)),
                       ],
                     ),
+
                     const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: Colors.white24),
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            onPressed: _isLoading ? null : _handleGoogleSignIn,
-                            icon: const Text(
-                              "G",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                            label: const Text(
-                              "Google",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ),
-                        ),
-                      ],
+
+                    // Google Button
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.white24),
+                        minimumSize: const Size(double.infinity, 52),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: _isLoading ? null : _handleGoogleSignIn,
+                      icon: const Text("G", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                      label: const Text("Google", style: TextStyle(color: Colors.white)),
                     ),
+
                     const SizedBox(height: 20),
                   ],
+
+                  // Already have an account
                   GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LoginScreen(),
-                        ),
-                      );
-                    },
+                    onTap: () => Navigator.pop(context),
                     child: Center(
                       child: RichText(
                         text: const TextSpan(
@@ -363,10 +339,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           children: [
                             TextSpan(
                               text: "Login",
-                              style: TextStyle(
-                                color: Color.fromRGBO(133, 90, 251, 1),
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: TextStyle(color: Color.fromRGBO(133, 90, 251, 1), fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
@@ -434,7 +407,9 @@ class _InputField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color.fromRGBO(133, 90, 251, 1)),
+          borderSide: const BorderSide(
+            color: Color.fromRGBO(133, 90, 251, 1),
+          ),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

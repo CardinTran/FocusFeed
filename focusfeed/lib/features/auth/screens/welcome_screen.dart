@@ -93,7 +93,7 @@ class WelcomeScreen extends StatelessWidget {
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Get Started", style: TextStyle(color: Colors.white)),
+                  Text("Create Account", style: TextStyle(color: Colors.white)),
                   SizedBox(width: 8),
                   Icon(Icons.arrow_forward, size: 18, color: Colors.white),
                 ],
@@ -119,16 +119,18 @@ class WelcomeScreen extends StatelessWidget {
               ),
             ),
 
-            Positioned(
-              bottom: 30,
-              right: 20,
-              child: FloatingActionButton(
-                mini: true,
-                backgroundColor: Colors.grey,
-                onPressed: () {
-                  Navigator.pushReplacementNamed(context, '/home');
-                },
-                child: const Icon(Icons.bug_report),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 30),
+                child: FloatingActionButton(
+                  mini: true,
+                  backgroundColor: Colors.grey,
+                  onPressed: () {
+                    Navigator.pushReplacementNamed(context, '/home');
+                  },
+                  child: const Icon(Icons.bug_report),
+                ),
               ),
             ),
           ],

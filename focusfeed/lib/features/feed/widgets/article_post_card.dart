@@ -1,16 +1,17 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:focusfeed/features/feed/feed_controller.dart';
 import 'package:focusfeed/features/feed/feed_item.dart';
 import 'package:focusfeed/features/feed/widgets/feed_action_buttons.dart';
-import 'package:focusfeed/features/import/import_repository.dart';
 
 class ArticlePostCard extends StatefulWidget {
   final FeedItem item;
+  final FeedController controller;
   final VoidCallback onChanged;
 
   const ArticlePostCard({
     super.key,
     required this.item,
+    required this.controller,
     required this.onChanged,
   });
 
@@ -22,20 +23,25 @@ class _ArticlePostCardState extends State<ArticlePostCard> {
   bool _isUpdating = false;
 
   Future<void> _toggleLearned() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null || widget.item.importId == null || _isUpdating) return;
+    if (_isUpdating) return;
+
+    final newValue = !widget.item.learned;
 
     setState(() {
       _isUpdating = true;
+      widget.item.learned = newValue;
     });
 
     try {
-      await ImportRepository().updateLearned(
-        userId: user.uid,
-        importId: widget.item.importId!,
-        cardId: widget.item.id,
-        learned: !widget.item.learned,
-      );
+      await widget.controller.setLearned(widget.item, newValue);
+      widget.onChanged();
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          widget.item.learned = !newValue;
+        });
+      }
+      rethrow;
     } finally {
       if (mounted) {
         setState(() {
@@ -46,20 +52,25 @@ class _ArticlePostCardState extends State<ArticlePostCard> {
   }
 
   Future<void> _toggleSaved() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null || widget.item.importId == null || _isUpdating) return;
+    if (_isUpdating) return;
+
+    final newValue = !widget.item.saved;
 
     setState(() {
       _isUpdating = true;
+      widget.item.saved = newValue;
     });
 
     try {
-      await ImportRepository().updateSaved(
-        userId: user.uid,
-        importId: widget.item.importId!,
-        cardId: widget.item.id,
-        saved: !widget.item.saved,
-      );
+      await widget.controller.setSaved(widget.item, newValue);
+      widget.onChanged();
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          widget.item.saved = !newValue;
+        });
+      }
+      rethrow;
     } finally {
       if (mounted) {
         setState(() {

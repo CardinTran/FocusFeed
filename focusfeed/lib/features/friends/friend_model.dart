@@ -22,7 +22,7 @@ class FriendRequest {
   final String id;
   final String fromUid;
   final String toUid;
-  final String fromDisplayName; // stored at send time — no extra lookup
+  final String fromDisplayName;
   final String status;
   final DateTime? createdAt;
 
@@ -50,7 +50,7 @@ class FriendRequest {
 
 class Friend {
   final String uid;
-  final String displayName; // stored at accept time — no extra lookup
+  final String displayName;
   final DateTime? addedAt;
 
   const Friend({

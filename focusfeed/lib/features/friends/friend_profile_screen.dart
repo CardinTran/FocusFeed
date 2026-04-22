@@ -130,13 +130,12 @@ class FriendProfileScreen extends StatelessWidget {
                       grouped.putIfAbsent(key, () => []).add(item);
                     }
 
-                    return Column(
-                      children: grouped.entries.map((entry) {
-                        final cards = entry.value;
-                        final deckTitle = cards.first.deckTitle ?? 'Deck';
-                        return _deckCard(context, entry.key, cards);
-                      }).toList(),
-                    );
+	                    return Column(
+	                      children: grouped.entries.map((entry) {
+	                        final cards = entry.value;
+	                        return _deckCard(context, entry.key, cards);
+	                      }).toList(),
+	                    );
                   },
                 ),
               ],

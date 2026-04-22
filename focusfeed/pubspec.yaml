@@ -26,6 +26,20 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.3
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "web/ff-logo-transparent.png"
+  background_color: "#0F0F23"
+  adaptive_icon_background: "#0F0F23"
+  adaptive_icon_foreground: "web/ff-logo-transparent.png"
+  web:
+    generate: true
+    image_path: "web/ff-logo-transparent.png"
+    background_color: "#0F0F23"
+    theme_color: "#6C5CE7"
 
 flutter:
   uses-material-design: true

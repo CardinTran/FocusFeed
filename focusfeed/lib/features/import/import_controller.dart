@@ -6,6 +6,7 @@ import 'package:focusfeed/features/feed/feed_item.dart';
 import 'package:focusfeed/features/import/ocr_import_service.dart';
 import 'package:focusfeed/features/import/parsed_flashcard.dart';
 
+import 'card_generator_service.dart';
 import 'import_parser.dart';
 import 'import_repository.dart';
 
@@ -26,16 +27,19 @@ class ImportController {
   final ImportParser parser;
   final ImportRepository repository;
   final OcrImportService ocrService;
+  final CardGeneratorService generator;
 
   ImportController({
     FirebaseAuth? auth,
     ImportParser? parser,
     ImportRepository? repository,
     OcrImportService? ocrService,
+    CardGeneratorService? generator,
   }) : auth = auth ?? FirebaseAuth.instance,
        parser = parser ?? const ImportParser(),
        repository = repository ?? ImportRepository(),
-       ocrService = ocrService ?? OcrImportService();
+       ocrService = ocrService ?? OcrImportService(),
+       generator = generator ?? const CardGeneratorService();
 
   Future<ImportResult> pickAndImportFile() async {
     // Existing text-file import path. It still saves immediately because users
@@ -69,11 +73,13 @@ class ImportController {
       throw Exception('No usable text found in the selected file.');
     }
 
+    final generatedCards = generator.generate(parsedCards);
+
     final importId = await repository.saveImport(
       userId: user.uid,
       fileName: pickedFile.name,
       rawText: rawText,
-      cards: parsedCards,
+      cards: generatedCards,
     );
 
     final items = await repository.loadFeedItemsFromImport(
@@ -84,7 +90,7 @@ class ImportController {
     return ImportResult(
       items: items,
       fileName: pickedFile.name,
-      message: 'Imported ${parsedCards.length} flashcards successfully.',
+      message: 'Imported ${generatedCards.length} cards successfully.',
     );
   }
 
@@ -131,13 +137,13 @@ class ImportController {
       throw Exception('Add at least one card before saving.');
     }
 
+    final generatedCards = generator.generate(approvedCards);
+
     final importId = await repository.saveImport(
       userId: user.uid,
       fileName: fileName,
       rawText: rawText,
-      cards: approvedCards,
-      // Store the source so later library/feed UI can distinguish OCR imports
-      // from file imports if we want different labels or cleanup behavior.
+      cards: generatedCards,
       sourceType: 'image_ocr',
     );
 
@@ -149,7 +155,7 @@ class ImportController {
     return ImportResult(
       items: items,
       fileName: fileName,
-      message: 'Saved ${approvedCards.length} OCR flashcards.',
+      message: 'Saved ${generatedCards.length} cards from OCR.',
     );
   }
 

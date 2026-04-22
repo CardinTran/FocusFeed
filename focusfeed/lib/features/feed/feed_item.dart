@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum FeedItemType { article, flashcard }
+enum FeedItemType { article, flashcard, quiz, fillInBlank, explainer }
 
 class FeedItem {
   final String id;
@@ -22,6 +22,10 @@ class FeedItem {
   final DateTime? lastSeenAt;
   final DateTime? lastLearnedAt;
   final DateTime? resurfaceAfter;
+
+  final List<String>? options; // quiz: 4 answer choices
+  final int? correctIndex; // quiz: which index options is correct
+  final String? sentence; // fillInBlank
 
   bool learned;
   bool saved;
@@ -45,6 +49,9 @@ class FeedItem {
     this.resurfaceAfter,
     this.learned = false,
     this.saved = false,
+    this.options,
+    this.correctIndex,
+    this.sentence,
   });
 
   factory FeedItem.flashcard({
@@ -117,10 +124,86 @@ class FeedItem {
     );
   }
 
-  /// Creates a copy with selected fields replaced.
-  ///
-  /// This is useful when the UI needs to refresh queue items from newer stream
-  /// data without reconstructing every call site by hand.
+  factory FeedItem.quiz({
+    required String id,
+    required String category,
+    required Color categoryColor,
+    required Color categoryBg,
+    required String question,
+    required List<String> options,
+    required int correctIndex,
+    String? importId,
+    bool learned = false,
+    bool saved = false,
+  }) {
+    return FeedItem(
+      id: id,
+      importId: importId,
+      type: FeedItemType.quiz,
+      category: category,
+      categoryColor: categoryColor,
+      categoryBg: categoryBg,
+      deckTitle: 'QUICK QUIZ',
+      question: question,
+      options: options,
+      correctIndex: correctIndex,
+      learned: learned,
+      saved: saved,
+    );
+  }
+
+  factory FeedItem.fillInBlank({
+    required String id,
+    required String category,
+    required Color categoryColor,
+    required Color categoryBg,
+    required String sentence,
+    required String answer,
+    String? importId,
+    bool learned = false,
+    bool saved = false,
+  }) {
+    return FeedItem(
+      id: id,
+      importId: importId,
+      type: FeedItemType.fillInBlank,
+      category: category,
+      categoryColor: categoryColor,
+      categoryBg: categoryBg,
+      deckTitle: 'FILL IN THE BLANK',
+      sentence: sentence,
+      answer: answer,
+      learned: learned,
+      saved: saved,
+    );
+  }
+
+  factory FeedItem.explainer({
+    required String id,
+    required String category,
+    required Color categoryColor,
+    required Color categoryBg,
+    required String title,
+    required String body,
+    String? importId,
+    bool learned = false,
+    bool saved = false,
+  }) {
+    return FeedItem(
+      id: id,
+      importId: importId,
+      type: FeedItemType.explainer,
+      category: category,
+      categoryColor: categoryColor,
+      categoryBg: categoryBg,
+      deckTitle: 'MICRO-EXPLAINER',
+      title: title,
+      description: body,
+      learned: learned,
+      saved: saved,
+    );
+  }
+
   FeedItem copyWith({
     String? id,
     String? importId,
@@ -140,6 +223,9 @@ class FeedItem {
     DateTime? resurfaceAfter,
     bool? learned,
     bool? saved,
+    List<String>? options,
+    int? correctIndex,
+    String? sentence,
   }) {
     return FeedItem(
       id: id ?? this.id,
@@ -160,6 +246,9 @@ class FeedItem {
       resurfaceAfter: resurfaceAfter ?? this.resurfaceAfter,
       learned: learned ?? this.learned,
       saved: saved ?? this.saved,
+      options: options ?? this.options,
+      correctIndex: correctIndex ?? this.correctIndex,
+      sentence: sentence ?? this.sentence,
     );
   }
 }

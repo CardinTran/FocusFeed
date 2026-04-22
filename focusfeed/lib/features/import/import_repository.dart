@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:focusfeed/features/feed/feed_item.dart';
 import 'package:focusfeed/features/feed/feed_policy.dart';
-import 'package:focusfeed/features/import/parsed_flashcard.dart';
+import 'package:focusfeed/features/import/generated_card.dart';
 
 class ImportRepository {
   final FirebaseFirestore firestore;
@@ -14,7 +14,7 @@ class ImportRepository {
     required String userId,
     required String fileName,
     required String rawText,
-    required List<ParsedFlashcard> cards,
+    required List<GeneratedCard> cards,
     String sourceType = 'file',
   }) async {
     final importRef = await firestore
@@ -36,8 +36,8 @@ class ImportRepository {
       final cardRef = importRef.collection('cards').doc();
 
       batch.set(cardRef, {
-        'term': card.term,
-        'answer': card.answer,
+        'cardType': card.cardType,
+        'content': card.content,
         'order': i,
         'isSaved': false,
         'isLearned': false,
@@ -137,6 +137,66 @@ class ImportRepository {
         });
   }
 
+  FeedItem _docToFeedItem(Map<String, dynamic> data, String docId, String importId) {
+    final cardType = data['cardType'] as String? ?? 'flashcard';
+    final content = (data['content'] as Map<String, dynamic>?) ?? {};
+    final isSaved = data['isSaved'] as bool? ?? false;
+    final isLearned = data['isLearned'] as bool? ?? false;
+
+    switch (cardType) {
+      case 'quiz':
+        return FeedItem.quiz(
+          id: docId,
+          importId: importId,
+          category: 'Imported',
+          categoryColor: const Color(0xFFFF6B6B),
+          categoryBg: const Color(0x1AFF6B6B),
+          question: content['question'] as String? ?? '',
+          options: List<String>.from(content['options'] as List? ?? []),
+          correctIndex: content['correctIndex'] as int? ?? 0,
+          saved: isSaved,
+          learned: isLearned,
+        );
+      case 'fillInBlank':
+        return FeedItem.fillInBlank(
+          id: docId,
+          importId: importId,
+          category: 'Imported',
+          categoryColor: const Color(0xFFFDCB6E),
+          categoryBg: const Color(0x1AFDCB6E),
+          sentence: content['sentence'] as String? ?? '',
+          answer: content['answer'] as String? ?? '',
+          saved: isSaved,
+          learned: isLearned,
+        );
+      case 'explainer':
+        return FeedItem.explainer(
+          id: docId,
+          importId: importId,
+          category: 'Imported',
+          categoryColor: const Color(0xFF00B894),
+          categoryBg: const Color(0x1A00B894),
+          title: content['title'] as String? ?? '',
+          body: content['body'] as String? ?? '',
+          saved: isSaved,
+          learned: isLearned,
+        );
+      default: // flashcard
+        return FeedItem.flashcard(
+          id: docId,
+          importId: importId,
+          category: 'Imported',
+          categoryColor: const Color(0xFF855AFB),
+          categoryBg: const Color(0x1A855AFB),
+          deckTitle: 'FLASHCARD',
+          question: content['front'] as String? ?? '',
+          answer: content['back'] as String? ?? '',
+          saved: isSaved,
+          learned: isLearned,
+        );
+    }
+  }
+
   Future<List<FeedItem>> loadFeedItemsFromImport({
     required String userId,
     required String importId,
@@ -150,26 +210,9 @@ class ImportRepository {
         .orderBy('order')
         .get();
 
-    return snapshot.docs.map<FeedItem>((doc) {
-      final data = doc.data();
-
-      return FeedItem.flashcard(
-        id: doc.id,
-        importId: importId,
-        category: 'Imported',
-        categoryColor: const Color(0xFF855AFB),
-        categoryBg: const Color(0x1A855AFB),
-        deckTitle: 'FLASHCARD',
-        question: data['term'] ?? '',
-        answer: data['answer'] ?? '',
-        seenCount: (data['seenCount'] as num?)?.toInt() ?? 0,
-        lastSeenAt: _readTimestamp(data['lastSeenAt']),
-        lastLearnedAt: _readTimestamp(data['lastLearnedAt']),
-        resurfaceAfter: _readTimestamp(data['resurfaceAfter']),
-        saved: data['isSaved'] ?? false,
-        learned: data['isLearned'] ?? false,
-      );
-    }).toList();
+    return snapshot.docs
+        .map((doc) => _docToFeedItem(doc.data(), doc.id, importId))
+        .toList();
   }
 
   Stream<List<FeedItem>> streamAllFeedItemsForUser(String userId) {
@@ -189,26 +232,7 @@ class ImportRepository {
                 .get();
 
             for (final doc in cardsSnapshot.docs) {
-              final data = doc.data();
-
-              allItems.add(
-                FeedItem.flashcard(
-                  id: doc.id,
-                  importId: importDoc.id,
-                  category: 'Imported',
-                  categoryColor: const Color(0xFF855AFB),
-                  categoryBg: const Color(0x1A855AFB),
-                  deckTitle: 'FLASHCARD',
-                  question: data['term'] ?? '',
-                  answer: data['answer'] ?? '',
-                  seenCount: (data['seenCount'] as num?)?.toInt() ?? 0,
-                  lastSeenAt: _readTimestamp(data['lastSeenAt']),
-                  lastLearnedAt: _readTimestamp(data['lastLearnedAt']),
-                  resurfaceAfter: _readTimestamp(data['resurfaceAfter']),
-                  saved: data['isSaved'] ?? false,
-                  learned: data['isLearned'] ?? false,
-                ),
-              );
+              allItems.add(_docToFeedItem(doc.data(), doc.id, importDoc.id));
             }
           }
 
@@ -216,13 +240,5 @@ class ImportRepository {
         });
   }
 
-  /// Safely reads a Firestore timestamp field and converts it to a Dart
-  /// `DateTime`.
-  DateTime? _readTimestamp(dynamic value) {
-    if (value is Timestamp) {
-      return value.toDate();
-    }
 
-    return null;
-  }
 }

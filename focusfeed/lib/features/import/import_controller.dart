@@ -94,10 +94,12 @@ class ImportController {
     );
   }
 
-  Future<OcrPreviewResult?> pickImageForPreview() async {
+  Future<OcrPreviewResult?> pickImageForPreview({
+    required OcrImageInput input,
+  }) async {
     // OCR imports always stop at a draft preview. OCR output can be incomplete,
     // out of order, or noisy even when the source image looks well formatted.
-    final draft = await ocrService.pickImageAndExtractText();
+    final draft = await ocrService.pickImageAndExtractText(input: input);
     if (draft == null) return null;
 
     final parsedCards = parser.parseFlashcards(draft.rawText);

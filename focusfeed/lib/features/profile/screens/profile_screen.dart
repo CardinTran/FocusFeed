@@ -75,7 +75,7 @@ class ProfileScreen extends StatelessWidget {
                     _menuRow(
                       context,
                       icon: Icons.people_outline,
-                      iconBg: _accent.withOpacity(0.15),
+	                      iconBg: _accent.withValues(alpha: 0.15),
                       iconColor: _accent,
                       label: 'Friends',
                       onTap: () => Navigator.push(context,
@@ -90,7 +90,7 @@ class ProfileScreen extends StatelessWidget {
                     _menuRow(
                       context,
                       icon: Icons.settings_outlined,
-                      iconBg: Colors.white.withOpacity(0.06),
+	                      iconBg: Colors.white.withValues(alpha: 0.06),
                       iconColor: _muted,
                       label: 'Settings',
                       onTap: () => Navigator.push(context,

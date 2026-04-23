@@ -4,6 +4,8 @@ import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 
+enum OcrImageInput { camera, gallery }
+
 class OcrImportDraft {
   /// Display name for the selected source image.
   final String imageName;
@@ -26,11 +28,15 @@ class OcrImportService {
       textRecognizer =
           textRecognizer ?? TextRecognizer(script: TextRecognitionScript.latin);
 
-  Future<OcrImportDraft?> pickImageAndExtractText() async {
-    // Keep the picker simple for the POC: gallery input first, camera capture
-    // can be added later without changing the parser/save flow.
+  Future<OcrImportDraft?> pickImageAndExtractText({
+    required OcrImageInput input,
+  }) async {
+    // The OCR pipeline is shared for camera and library images. The only thing
+    // that changes is where the original image comes from.
     final image = await imagePicker.pickImage(
-      source: ImageSource.gallery,
+      source: input == OcrImageInput.camera
+          ? ImageSource.camera
+          : ImageSource.gallery,
       imageQuality: 100,
     );
 
@@ -82,7 +88,7 @@ class OcrImportService {
     final recognizedText = await textRecognizer.processImage(inputImage);
 
     return OcrImportDraft(
-      imageName: image.name.isEmpty ? 'Image OCR import' : image.name,
+      imageName: image.name.isEmpty ? _defaultImageName(input) : image.name,
       rawText: _readTextByVisualLine(recognizedText),
     );
   }
@@ -112,5 +118,11 @@ class OcrImportService {
 
     // Fall back to ML Kit's raw text if line extraction is unexpectedly empty.
     return text.isEmpty ? recognizedText.text.trim() : text;
+  }
+
+  String _defaultImageName(OcrImageInput input) {
+    return input == OcrImageInput.camera
+        ? 'Camera OCR import'
+        : 'Image OCR import';
   }
 }

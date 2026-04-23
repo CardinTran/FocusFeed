@@ -23,7 +23,7 @@ class FocusFeed extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const _AuthGate(),
+      home: const IntroScreen(),
       routes: {
         '/auth-gate': (context) => const _AuthGate(),
         '/home': (context) => const MainNavScreen(),

@@ -120,14 +120,14 @@ class _FriendsScreenState extends State<FriendsScreen> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: _searchResults.length,
-                separatorBuilder: (_, __) => const Divider(
-                  height: 1, color: Color(0x12FFFFFF)),
+	                separatorBuilder: (_, _) => const Divider(
+	                  height: 1, color: Color(0x12FFFFFF)),
                 itemBuilder: (_, i) {
                   final user = _searchResults[i];
                   return ListTile(
                     dense: true,
                     leading: CircleAvatar(
-                      backgroundColor: _accent.withOpacity(0.2),
+	                      backgroundColor: _accent.withValues(alpha: 0.2),
                       child: const Icon(Icons.person, size: 18, color: _accent),
                     ),
                     title: Text(user.displayName,
@@ -179,7 +179,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                 ),
               ),
               leading: CircleAvatar(
-                backgroundColor: _accent.withOpacity(0.2),
+	                backgroundColor: _accent.withValues(alpha: 0.2),
                 child: const Icon(Icons.person, color: _accent),
               ),
               title: Text(f.displayName,
@@ -215,7 +215,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
             final r = requests[i];
             return ListTile(
               leading: CircleAvatar(
-                backgroundColor: _accent.withOpacity(0.2),
+	                backgroundColor: _accent.withValues(alpha: 0.2),
                 child: const Icon(Icons.person_add, color: _accent),
               ),
               title: Text(r.fromDisplayName,

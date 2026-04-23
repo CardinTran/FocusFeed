@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'friend_model.dart';
 
 class FriendRepository {
@@ -8,17 +9,17 @@ class FriendRepository {
     if (query.isEmpty) return [];
     final lower = query.toLowerCase();
     try {
-      final snap = await _db
-          .collection('users')
-          .where('displayNameLower', isGreaterThanOrEqualTo: lower)
-          .where('displayNameLower', isLessThan: lower + '\uf8ff')
-          .limit(10)
-          .get();
-      return snap.docs.map(UserResult.fromDoc).toList();
-    } catch (e) {
-      print('SEARCH ERROR: $e');
-      return [];
-    }
+	      final snap = await _db
+	          .collection('users')
+	          .where('displayNameLower', isGreaterThanOrEqualTo: lower)
+	          .where('displayNameLower', isLessThan: '$lower\uf8ff')
+	          .limit(10)
+	          .get();
+	      return snap.docs.map(UserResult.fromDoc).toList();
+	    } catch (e) {
+	      debugPrint('SEARCH ERROR: $e');
+	      return [];
+	    }
   }
 
   // Fetches sender's name then stores it so receiver sees it correctly

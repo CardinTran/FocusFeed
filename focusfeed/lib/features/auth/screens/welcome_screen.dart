@@ -118,21 +118,6 @@ class WelcomeScreen extends StatelessWidget {
                 style: TextStyle(color: Color.fromRGBO(133, 90, 251, 1)),
               ),
             ),
-
-            Align(
-              alignment: Alignment.centerRight,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 30),
-                child: FloatingActionButton(
-                  mini: true,
-                  backgroundColor: Colors.grey,
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/home');
-                  },
-                  child: const Icon(Icons.bug_report),
-                ),
-              ),
-            ),
           ],
         ),
       ),

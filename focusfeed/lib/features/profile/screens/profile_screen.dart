@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:focusfeed/features/auth/screens/app_entry_screen.dart';
 import 'package:focusfeed/features/auth/services/auth_service.dart';
 import 'package:focusfeed/features/friends/friends_screen.dart';
-import 'package:focusfeed/features/settings/settings_screen.dart';
+import 'package:focusfeed/features/settings/new_settings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});

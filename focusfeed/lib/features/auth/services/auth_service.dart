@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:focusfeed/features/auth/services/username_policy.dart';
+import 'package:focusfeed/features/auth/services/username_reservation_service.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 /// Handles Firebase Authentication logic and creates the user's Firestore
@@ -9,6 +11,8 @@ class AuthServices {
   final FirebaseAuth auth = FirebaseAuth.instance;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
+  late final UsernameReservationService _usernameReservations =
+      UsernameReservationService(firestore: firestore);
 
   /// Must be called once before using Google sign-in.
   Future<void> initGoogleSignIn() async {
@@ -40,28 +44,43 @@ class AuthServices {
   Future<UserCredential> signUpWithEmail(
     String email,
     String password, {
-    String? displayName,
+    required String username,
   }) async {
+    User? createdUser;
     try {
+      final usernameError = UsernamePolicy.validate(username);
+      if (usernameError != null) {
+        throw Exception(usernameError);
+      }
+
       final credential = await auth.createUserWithEmailAndPassword(
         email: email.trim(),
         password: password,
       );
 
       final user = credential.user;
+      createdUser = user;
       if (user != null) {
-        final trimmedName = displayName?.trim();
-        if (trimmedName != null && trimmedName.isNotEmpty) {
-          await user.updateDisplayName(trimmedName);
-          await user.reload();
-        }
-        await _createUserDocument(auth.currentUser ?? user);
+        final trimmedUsername = username.trim();
+        await user.updateDisplayName(trimmedUsername);
+        await user.reload();
+        await _createEmailUserDocument(
+          user: auth.currentUser ?? user,
+          username: username,
+        );
       }
 
       return credential;
+    } on UsernameTakenException {
+      await _deletePartiallyCreatedUser(createdUser);
+      throw Exception('That username is already taken.');
     } on FirebaseAuthException catch (e) {
       debugPrint('Sign up failed: ${e.code} - ${e.message}');
       throw Exception(_mapAuthError(e));
+    } on FirebaseException catch (e) {
+      await _deletePartiallyCreatedUser(createdUser);
+      debugPrint('Sign up profile setup failed: ${e.code} - ${e.message}');
+      throw Exception('Could not finish account setup. Please try again.');
     }
   }
 
@@ -142,6 +161,46 @@ class AuthServices {
         'displayNameLower': user.displayName?.toLowerCase() ?? '',
         'createdAt': FieldValue.serverTimestamp(),
       });
+    }
+  }
+
+  Future<void> _createEmailUserDocument({
+    required User user,
+    required String username,
+  }) async {
+    final trimmedUsername = username.trim();
+    final normalizedUsername = UsernamePolicy.normalize(username);
+    final userDoc = firestore.collection('users').doc(user.uid);
+
+    await firestore.runTransaction((transaction) async {
+      await _usernameReservations.reserveUsernameInTransaction(
+        transaction,
+        uid: user.uid,
+        username: username,
+      );
+
+      transaction.set(userDoc, {
+        'uid': user.uid,
+        'email': user.email,
+        'displayName': trimmedUsername,
+        'displayNameLower': normalizedUsername,
+        'username': trimmedUsername,
+        'usernameLower': normalizedUsername,
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    });
+  }
+
+  Future<void> _deletePartiallyCreatedUser(User? user) async {
+    if (user == null) return;
+
+    try {
+      await user.delete();
+    } catch (e) {
+      debugPrint('Failed to clean up incomplete signup user: $e');
+    } finally {
+      await auth.signOut();
     }
   }
 }

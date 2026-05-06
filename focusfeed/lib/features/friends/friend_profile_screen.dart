@@ -10,38 +10,42 @@ class FriendProfileScreen extends StatelessWidget {
 
   const FriendProfileScreen({super.key, required this.friend});
 
-  static const Color _bg     = Color(0xFF0B0F2A);
-  static const Color _card   = Color(0xFF151A3B);
+  static const Color _bg = Color(0xFF0B0F2A);
+  static const Color _card = Color(0xFF151A3B);
   static const Color _accent = Color(0xFF855AFB);
   static const Color _border = Color(0x12FFFFFF);
 
   @override
   Widget build(BuildContext context) {
-    final initials = friend.displayName
-        .split(' ')
-        .where((w) => w.isNotEmpty)
-        .take(2)
-        .map((w) => w[0].toUpperCase())
-        .join();
-
     return Scaffold(
       backgroundColor: _bg,
       appBar: AppBar(
         backgroundColor: const Color(0xFF12182F),
-        title: Text(friend.displayName,
-            style: const TextStyle(color: Colors.white)),
+        title: Text(
+          friend.displayName,
+          style: const TextStyle(color: Colors.white),
+        ),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: FirebaseFirestore.instance
             .collection('users')
             .doc(friend.uid)
-            .get(),
+            .snapshots(),
         builder: (context, snap) {
           final data = snap.data?.data() as Map<String, dynamic>?;
+          final displayName =
+              data?['displayName'] as String? ?? friend.displayName;
+          final username = data?['username'] as String? ?? friend.username;
           final school = data?['school'] as String? ?? '';
           final courses = List<String>.from(data?['selectedCourses'] ?? []);
           final subjects = List<String>.from(data?['selectedSubjects'] ?? []);
+          final initials = displayName
+              .split(' ')
+              .where((w) => w.isNotEmpty)
+              .take(2)
+              .map((w) => w[0].toUpperCase())
+              .join();
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20),
@@ -50,31 +54,53 @@ class FriendProfileScreen extends StatelessWidget {
               children: [
                 // Avatar + name
                 Center(
-                  child: Column(children: [
-                    const SizedBox(height: 8),
-                    CircleAvatar(
-                      radius: 40,
-                      backgroundColor: _accent,
-                      child: Text(initials,
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 8),
+                      CircleAvatar(
+                        radius: 40,
+                        backgroundColor: _accent,
+                        child: Text(
+                          initials,
                           style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.w600)),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(friend.displayName,
-                        style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600)),
-                    if (school.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(school,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        displayName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      if (username.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          '@$username',
                           style: const TextStyle(
-                              color: Colors.white54, fontSize: 13)),
+                            color: Colors.white54,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                      if (school.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          school,
+                          style: const TextStyle(
+                            color: Colors.white54,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 24),
                     ],
-                    const SizedBox(height: 24),
-                  ]),
+                  ),
                 ),
 
                 // Courses
@@ -105,20 +131,24 @@ class FriendProfileScreen extends StatelessWidget {
                 _sectionLabel('Study Content'),
                 const SizedBox(height: 12),
                 StreamBuilder<List<FeedItem>>(
-                  stream: ImportRepository()
-                      .streamAllFeedItemsForUser(friend.uid),
+                  stream: ImportRepository().streamAllFeedItemsForUser(
+                    friend.uid,
+                  ),
                   builder: (context, snap) {
                     if (snap.connectionState == ConnectionState.waiting) {
                       return const Center(
-                          child: CircularProgressIndicator(color: _accent));
+                        child: CircularProgressIndicator(color: _accent),
+                      );
                     }
                     final items = snap.data ?? [];
                     if (items.isEmpty) {
                       return const Center(
                         child: Padding(
                           padding: EdgeInsets.only(top: 16),
-                          child: Text('No study content yet.',
-                              style: TextStyle(color: Colors.white54)),
+                          child: Text(
+                            'No study content yet.',
+                            style: TextStyle(color: Colors.white54),
+                          ),
                         ),
                       );
                     }
@@ -130,12 +160,12 @@ class FriendProfileScreen extends StatelessWidget {
                       grouped.putIfAbsent(key, () => []).add(item);
                     }
 
-	                    return Column(
-	                      children: grouped.entries.map((entry) {
-	                        final cards = entry.value;
-	                        return _deckCard(context, entry.key, cards);
-	                      }).toList(),
-	                    );
+                    return Column(
+                      children: grouped.entries.map((entry) {
+                        final cards = entry.value;
+                        return _deckCard(context, entry.key, cards);
+                      }).toList(),
+                    );
                   },
                 ),
               ],
@@ -147,36 +177,43 @@ class FriendProfileScreen extends StatelessWidget {
   }
 
   Widget _sectionLabel(String label) => Text(
-        label.toUpperCase(),
-        style: const TextStyle(
-            color: Color(0x40FFFFFF),
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.8),
-      );
+    label.toUpperCase(),
+    style: const TextStyle(
+      color: Color(0x40FFFFFF),
+      fontSize: 11,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.8,
+    ),
+  );
 
   Widget _chip(String label) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: _accent.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: _accent.withValues(alpha: 0.3)),
-        ),
-        child: Text(label,
-            style: const TextStyle(
-                color: _accent, fontSize: 13, fontWeight: FontWeight.w500)),
-      );
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+    decoration: BoxDecoration(
+      color: _accent.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: _accent.withValues(alpha: 0.3)),
+    ),
+    child: Text(
+      label,
+      style: const TextStyle(
+        color: _accent,
+        fontSize: 13,
+        fontWeight: FontWeight.w500,
+      ),
+    ),
+  );
 
   Widget _deckCard(
-      BuildContext context, String importId, List<FeedItem> cards) {
+    BuildContext context,
+    String importId,
+    List<FeedItem> cards,
+  ) {
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => FriendDeckScreen(
-            friendName: friend.displayName,
-            cards: cards,
-          ),
+          builder: (_) =>
+              FriendDeckScreen(friendName: friend.displayName, cards: cards),
         ),
       ),
       child: Container(
@@ -187,35 +224,41 @@ class FriendProfileScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: _border),
         ),
-        child: Row(children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: _accent.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(10),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: _accent.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.style_outlined, color: _accent, size: 20),
             ),
-            child: const Icon(Icons.style_outlined, color: _accent, size: 20),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Flashcard Deck',
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Flashcard Deck',
                     style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600)),
-                const SizedBox(height: 2),
-                Text('${cards.length} cards',
-                    style: const TextStyle(
-                        color: Colors.white54, fontSize: 12)),
-              ],
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${cards.length} cards',
+                    style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const Icon(Icons.chevron_right, color: Colors.white24, size: 18),
-        ]),
+            const Icon(Icons.chevron_right, color: Colors.white24, size: 18),
+          ],
+        ),
       ),
     );
   }

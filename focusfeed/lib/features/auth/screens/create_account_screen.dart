@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:focusfeed/features/auth/screens/app_entry_screen.dart';
 import 'package:focusfeed/features/auth/services/auth_service.dart';
+import 'package:focusfeed/features/auth/services/username_policy.dart';
 import 'package:focusfeed/features/profile/screens/profile_setup_screen.dart';
 
-/// Sign-up screen. Collects name, email, password, and confirm password,
+/// Sign-up screen. Collects username, email, password, and confirm password,
 /// validates them inline, then calls [AuthServices.signUpWithEmail].
 /// On success navigates to [ProfileSetupScreen] to complete onboarding.
 class CreateAccountScreen extends StatefulWidget {
@@ -20,12 +21,12 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   final _confirmPasswordFieldKey = GlobalKey<FormFieldState<String>>();
   bool _isLoading = false;
   String? _authError;
-  final nameController = TextEditingController();
+  final usernameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
-  final auth = AuthServices();
+  late final auth = AuthServices();
 
   bool _showPassword = false;
   bool _showConfirmPassword = false;
@@ -37,12 +38,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     return emailRegex.hasMatch(email);
   }
 
-  String? validateName(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return "Full Name cannot be empty";
-    }
-    return null;
-  }
+  String? validateUsername(String? value) => UsernamePolicy.validate(value);
 
   String? validateEmail(String? value) {
     final email = value?.trim() ?? '';
@@ -88,7 +84,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       await auth.signUpWithEmail(
         emailController.text.trim(),
         passwordController.text,
-        displayName: nameController.text,
+        username: usernameController.text,
       );
 
       if (!mounted) return;
@@ -139,7 +135,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
 
   @override
   void dispose() {
-    nameController.dispose();
+    usernameController.dispose();
     emailController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
@@ -165,9 +161,18 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.arrow_back, color: Color.fromRGBO(133, 90, 251, 1), size: 18),
+                        Icon(
+                          Icons.arrow_back,
+                          color: Color.fromRGBO(133, 90, 251, 1),
+                          size: 18,
+                        ),
                         SizedBox(width: 4),
-                        Text("Back", style: TextStyle(color: Color.fromRGBO(133, 90, 251, 1))),
+                        Text(
+                          "Back",
+                          style: TextStyle(
+                            color: Color.fromRGBO(133, 90, 251, 1),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -176,13 +181,10 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
 
                   // Logo
                   Center(
-                    child: Container(
-                      height: 80,
+                    child: Image.asset(
+                      'web/ff-logo-transparent.png',
                       width: 80,
-                      decoration: BoxDecoration(
-                        color: Colors.white24,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
+                      height: 80,
                     ),
                   ),
 
@@ -202,12 +204,13 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
 
                   const SizedBox(height: 30),
 
-                  // Full Name
+                  // Username
                   _InputField(
-                    hint: "Full Name",
-                    icon: Icons.person_outline,
-                    controller: nameController,
-                    validator: validateName,
+                    hint: "Username",
+                    icon: Icons.alternate_email,
+                    controller: usernameController,
+                    validator: validateUsername,
+                    textInputAction: TextInputAction.next,
                   ),
 
                   const SizedBox(height: 14),
@@ -219,6 +222,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     keyboardType: TextInputType.emailAddress,
                     controller: emailController,
                     validator: validateEmail,
+                    textInputAction: TextInputAction.next,
                   ),
 
                   const SizedBox(height: 14),
@@ -230,13 +234,17 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     obscure: !_showPassword,
                     controller: passwordController,
                     validator: validatePassword,
+                    textInputAction: TextInputAction.next,
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _showPassword ? Icons.visibility_off_outlined : Icons.remove_red_eye_outlined,
+                        _showPassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.remove_red_eye_outlined,
                         color: Colors.white38,
                         size: 20,
                       ),
-                      onPressed: () => setState(() => _showPassword = !_showPassword),
+                      onPressed: () =>
+                          setState(() => _showPassword = !_showPassword),
                     ),
                   ),
 
@@ -250,13 +258,18 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     obscure: !_showConfirmPassword,
                     controller: confirmPasswordController,
                     validator: validateConfirmPassword,
+                    textInputAction: TextInputAction.done,
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _showConfirmPassword ? Icons.visibility_off_outlined : Icons.remove_red_eye_outlined,
+                        _showConfirmPassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.remove_red_eye_outlined,
                         color: Colors.white38,
                         size: 20,
                       ),
-                      onPressed: () => setState(() => _showConfirmPassword = !_showConfirmPassword),
+                      onPressed: () => setState(
+                        () => _showConfirmPassword = !_showConfirmPassword,
+                      ),
                     ),
                   ),
 
@@ -277,7 +290,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromRGBO(133, 90, 251, 1),
                       minimumSize: const Size(double.infinity, 52),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     onPressed: _isLoading ? null : _handleCreateAccount,
                     child: _isLoading
@@ -291,7 +306,11 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           )
                         : const Text(
                             "Create Account",
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
                           ),
                   ),
 
@@ -304,7 +323,13 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         const Expanded(child: Divider(color: Colors.white24)),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Text("Or continue with", style: TextStyle(color: Colors.white38, fontSize: 13)),
+                          child: Text(
+                            "Or continue with",
+                            style: TextStyle(
+                              color: Colors.white38,
+                              fontSize: 13,
+                            ),
+                          ),
                         ),
                         const Expanded(child: Divider(color: Colors.white24)),
                       ],
@@ -318,11 +343,23 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         side: const BorderSide(color: Colors.white24),
                         minimumSize: const Size(double.infinity, 52),
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       onPressed: _isLoading ? null : _handleGoogleSignIn,
-                      icon: const Text("G", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                      label: const Text("Google", style: TextStyle(color: Colors.white)),
+                      icon: const Text(
+                        "G",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      label: const Text(
+                        "Google",
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
 
                     const SizedBox(height: 20),
@@ -339,7 +376,10 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           children: [
                             TextSpan(
                               text: "Login",
-                              style: TextStyle(color: Color.fromRGBO(133, 90, 251, 1), fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                color: Color.fromRGBO(133, 90, 251, 1),
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
@@ -365,7 +405,6 @@ class _InputField extends StatelessWidget {
   final TextInputType? keyboardType;
   final Widget? suffixIcon;
   final String? Function(String?)? validator;
-  final void Function(String)? onChanged;
   final TextInputAction? textInputAction;
 
   const _InputField({
@@ -377,7 +416,6 @@ class _InputField extends StatelessWidget {
     this.keyboardType,
     this.suffixIcon,
     this.validator,
-    this.onChanged,
     this.textInputAction,
   });
 
@@ -389,7 +427,6 @@ class _InputField extends StatelessWidget {
       obscureText: obscure,
       keyboardType: keyboardType,
       validator: validator,
-      onChanged: onChanged,
       textInputAction: textInputAction,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       style: const TextStyle(color: Colors.white),
@@ -407,9 +444,7 @@ class _InputField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color.fromRGBO(133, 90, 251, 1),
-          ),
+          borderSide: const BorderSide(color: Color.fromRGBO(133, 90, 251, 1)),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

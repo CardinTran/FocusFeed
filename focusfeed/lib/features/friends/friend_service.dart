@@ -23,18 +23,18 @@ class FriendService {
 
   // Accept incoming request
   Future<void> acceptRequest(FriendRequest request) async {
-  final myName = await _repo.getDisplayName(_uid);
-  final fromName = request.fromDisplayName.isNotEmpty
-      ? request.fromDisplayName
-      : await _repo.getDisplayName(request.fromUid);
-  await _repo.acceptRequest(
-    request.id,
-    request.fromUid,
-    fromName,
-    _uid,
-    myName,
-  );
-}
+    final myName = await _repo.getDisplayName(_uid);
+    final fromName = request.fromDisplayName.isNotEmpty
+        ? request.fromDisplayName
+        : await _repo.getDisplayName(request.fromUid);
+    await _repo.acceptRequest(
+      request.id,
+      request.fromUid,
+      fromName,
+      _uid,
+      myName,
+    );
+  }
 
   // Decline incoming request
   Future<void> declineRequest(String requestId) async {
@@ -45,14 +45,16 @@ class FriendService {
   Future<void> removeFriend(String friendUid) async {
     await _repo.removeFriend(_uid, friendUid);
   }
+
   Future<List<UserResult>> searchUsers(String query) async {
-  return _repo.searchUsers(query);
-}
+    return _repo.searchUsers(query);
+  }
+
+  Stream<UserResult?> userProfile(String uid) => _repo.userProfile(uid);
+
   // Live stream of pending requests
-  Stream<List<FriendRequest>> pendingRequests() =>
-      _repo.pendingRequests(_uid);
+  Stream<List<FriendRequest>> pendingRequests() => _repo.pendingRequests(_uid);
 
   // Live stream of friends list
-  Stream<List<Friend>> friendsList() =>
-      _repo.friendsList(_uid);
+  Stream<List<Friend>> friendsList() => _repo.friendsList(_uid);
 }

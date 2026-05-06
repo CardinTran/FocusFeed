@@ -6,14 +6,23 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class UserResult {
   final String uid;
   final String displayName;
+  final String username;
 
-  const UserResult({required this.uid, required this.displayName});
+  const UserResult({
+    required this.uid,
+    required this.displayName,
+    required this.username,
+  });
 
   factory UserResult.fromDoc(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+    final username = data['username'] as String? ?? '';
     return UserResult(
       uid: doc.id,
-      displayName: data['displayName'] as String? ?? 'Unknown',
+      displayName:
+          data['displayName'] as String? ??
+          (username.isEmpty ? 'Unknown' : username),
+      username: username,
     );
   }
 }
@@ -51,19 +60,25 @@ class FriendRequest {
 class Friend {
   final String uid;
   final String displayName;
+  final String username;
   final DateTime? addedAt;
 
   const Friend({
     required this.uid,
     required this.displayName,
+    this.username = '',
     this.addedAt,
   });
 
   factory Friend.fromDoc(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+    final username = data['username'] as String? ?? '';
     return Friend(
       uid: data['uid'] as String,
-      displayName: data['displayName'] as String? ?? 'Unknown',
+      displayName:
+          data['displayName'] as String? ??
+          (username.isEmpty ? 'Unknown' : username),
+      username: username,
       addedAt: (data['addedAt'] as Timestamp?)?.toDate(),
     );
   }

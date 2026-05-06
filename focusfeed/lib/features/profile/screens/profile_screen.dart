@@ -9,11 +9,11 @@ import 'package:focusfeed/features/settings/settings_screen.dart';
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-  static const Color _bg     = Color(0xFF0B0F2A);
-  static const Color _card   = Color(0xFF151A3B);
+  static const Color _bg = Color(0xFF0B0F2A);
+  static const Color _card = Color(0xFF151A3B);
   static const Color _accent = Color(0xFF855AFB);
   static const Color _primary = Colors.white;
-  static const Color _muted  = Color(0x70FFFFFF);
+  static const Color _muted = Color(0x70FFFFFF);
   static const Color _divider = Color(0x12FFFFFF);
 
   @override
@@ -21,11 +21,17 @@ class ProfileScreen extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
     final uid = user?.uid ?? '';
 
-    return FutureBuilder<DocumentSnapshot>(
-      future: FirebaseFirestore.instance.collection('users').doc(uid).get(),
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .snapshots(),
       builder: (context, snap) {
         final data = snap.data?.data() as Map<String, dynamic>?;
-        final name = data?['displayName'] as String? ?? 'No name set';
+        final username = data?['username'] as String? ?? '';
+        final name =
+            data?['displayName'] as String? ??
+            (username.isEmpty ? 'No name set' : username);
         final email = user?.email ?? '';
         final initials = name
             .split(' ')
@@ -43,31 +49,45 @@ class ProfileScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Center(
-                    child: Column(children: [
-                      const SizedBox(height: 16),
-                      CircleAvatar(
-                        radius: 36,
-                        backgroundColor: _accent,
-                        child: Text(
-                          initials,
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 16),
+                        CircleAvatar(
+                          radius: 36,
+                          backgroundColor: _accent,
+                          child: Text(
+                            initials,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          name,
                           style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
+                            color: _primary,
+                            fontSize: 20,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(name,
-                          style: const TextStyle(
-                              color: _primary,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 4),
-                      Text(email,
-                          style: const TextStyle(color: _muted, fontSize: 13)),
-                      const SizedBox(height: 28),
-                    ]),
+                        if (username.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            '@$username',
+                            style: const TextStyle(color: _muted, fontSize: 13),
+                          ),
+                        ],
+                        const SizedBox(height: 4),
+                        Text(
+                          email,
+                          style: const TextStyle(color: _muted, fontSize: 13),
+                        ),
+                        const SizedBox(height: 28),
+                      ],
+                    ),
                   ),
 
                   _sectionLabel('Social'),
@@ -75,11 +95,15 @@ class ProfileScreen extends StatelessWidget {
                     _menuRow(
                       context,
                       icon: Icons.people_outline,
-	                      iconBg: _accent.withValues(alpha: 0.15),
+                      iconBg: _accent.withValues(alpha: 0.15),
                       iconColor: _accent,
                       label: 'Friends',
-                      onTap: () => Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => const FriendsScreen())),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const FriendsScreen(),
+                        ),
+                      ),
                     ),
                   ]),
 
@@ -90,11 +114,15 @@ class ProfileScreen extends StatelessWidget {
                     _menuRow(
                       context,
                       icon: Icons.settings_outlined,
-	                      iconBg: Colors.white.withValues(alpha: 0.06),
+                      iconBg: Colors.white.withValues(alpha: 0.06),
                       iconColor: _muted,
                       label: 'Settings',
-                      onTap: () => Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => const SettingsScreen())),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SettingsScreen(),
+                        ),
+                      ),
                     ),
                   ]),
 
@@ -112,8 +140,10 @@ class ProfileScreen extends StatelessWidget {
                         ),
                       ),
                       onPressed: () => _logout(context),
-                      child: const Text('Log Out',
-                          style: TextStyle(fontWeight: FontWeight.w500)),
+                      child: const Text(
+                        'Log Out',
+                        style: TextStyle(fontWeight: FontWeight.w500),
+                      ),
                     ),
                   ),
                 ],
@@ -126,23 +156,26 @@ class ProfileScreen extends StatelessWidget {
   } // end build
 
   Widget _sectionLabel(String label) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Text(label.toUpperCase(),
-            style: const TextStyle(
-                color: Color(0x40FFFFFF),
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.8)),
-      );
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Text(
+      label.toUpperCase(),
+      style: const TextStyle(
+        color: Color(0x40FFFFFF),
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.8,
+      ),
+    ),
+  );
 
   Widget _menuCard(List<Widget> rows) => Container(
-        decoration: BoxDecoration(
-          color: _card,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: _divider),
-        ),
-        child: Column(children: rows),
-      );
+    decoration: BoxDecoration(
+      color: _card,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: _divider),
+    ),
+    child: Column(children: rows),
+  );
 
   Widget _menuRow(
     BuildContext context, {
@@ -151,29 +184,34 @@ class ProfileScreen extends StatelessWidget {
     required Color iconColor,
     required String label,
     required VoidCallback onTap,
-  }) =>
-      InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                  color: iconBg, borderRadius: BorderRadius.circular(8)),
-              child: Icon(icon, color: iconColor, size: 17),
+  }) => InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(16),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: iconBg,
+              borderRadius: BorderRadius.circular(8),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(label,
-                  style: const TextStyle(color: Colors.white, fontSize: 14)),
+            child: Icon(icon, color: iconColor, size: 17),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(color: Colors.white, fontSize: 14),
             ),
-            const Icon(Icons.chevron_right, color: Color(0x30FFFFFF), size: 18),
-          ]),
-        ),
-      );
+          ),
+          const Icon(Icons.chevron_right, color: Color(0x30FFFFFF), size: 18),
+        ],
+      ),
+    ),
+  );
 
   Future<void> _logout(BuildContext context) async {
     await AuthServices().signOut();

@@ -23,6 +23,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isLoading = true;
 
   // Account fields
+  String displayName = "";
   String username = "";
   String email = "";
   String school = "";
@@ -53,8 +54,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final firebaseUser = FirebaseAuth.instance.currentUser;
       if (!mounted) return;
       setState(() {
-        username =
+        displayName =
             data?['displayName'] as String? ?? firebaseUser?.displayName ?? '';
+        username = data?['username'] as String? ?? '';
         email = data?['email'] as String? ?? firebaseUser?.email ?? '';
         school = data?['school'] as String? ?? '';
         selectedCourses = List<String>.from(
@@ -127,9 +129,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 SettingsTile(
                   icon: Icons.person_outline,
+                  title: "Display Name",
+                  subtitle: displayName,
+                  onTap: _openDisplayNameDialog,
+                  cardColor: _card,
+                  textPrimary: _textPrimary,
+                  textSecondary: _textSecondary,
+                ),
+                SettingsTile(
+                  icon: Icons.alternate_email,
                   title: "Username",
-                  subtitle: username,
-                  onTap: _openUsernameDialog,
+                  subtitle: username.isEmpty ? "No username set" : "@$username",
+                  onTap: () {
+                    _showSimpleInfoSheet(
+                      title: "Username",
+                      message: username.isEmpty
+                          ? "No username is set for this account yet."
+                          : "Your username is @$username.",
+                    );
+                  },
                   cardColor: _card,
                   textPrimary: _textPrimary,
                   textSecondary: _textSecondary,
@@ -313,19 +331,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// Updates the display name in both Firebase Auth and Firestore so both
   /// sources stay in sync. Firebase Auth is the source of truth for the
   /// logged-in user object; Firestore is queried by other features.
-  void _openUsernameDialog() {
-    final controller = TextEditingController(text: username);
+  void _openDisplayNameDialog() {
+    final controller = TextEditingController(text: displayName);
 
     showCenteredInputDialog(
       context: context,
-      title: "Change Username",
+      title: "Change Display Name",
       cardColor: _card,
       textPrimary: _textPrimary,
       child: Column(
         children: [
           _themedTextField(
             controller: controller,
-            label: "Username",
+            label: "Display Name",
             icon: Icons.person_outline,
           ),
           const SizedBox(height: 20),
@@ -339,13 +357,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 await FirebaseAuth.instance.currentUser?.updateDisplayName(
                   value,
                 );
-                await _profileService.updateProfile({'displayName': value});
+                await _profileService.updateProfile({
+                  'displayName': value,
+                  'displayNameLower': value.toLowerCase(),
+                });
                 if (!mounted) return;
-                setState(() => username = value);
+                setState(() => displayName = value);
                 Navigator.pop(context);
-                _showSnackBar("Username updated");
+                _showSnackBar("Display name updated");
               } catch (_) {
-                _showSnackBar("Failed to update username");
+                _showSnackBar("Failed to update display name");
               }
             },
           ),

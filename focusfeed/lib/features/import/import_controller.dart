@@ -44,7 +44,7 @@ class ImportController {
   Future<ImportResult> pickAndImportFile() async {
     // Existing text-file import path. It still saves immediately because users
     // are expected to provide already structured text files.
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['txt', 'csv'],
       withData: true,

@@ -13,11 +13,11 @@ dependencies:
   cupertino_icons: ^1.0.8
   # Firebase dependencies
   firebase_core: ^4.6.0
-  file_picker: ^10.3.10
+  file_picker: ^11.0.2
   firebase_auth: ^6.3.0
   cloud_firestore: ^6.0.3
   google_sign_in: ^7.2.0  # For Google authentication
-  sign_in_with_apple: ^7.0.1  # For Apple authentication (iOS only)
+  sign_in_with_apple: ^8.0.0  # For Apple authentication (iOS only)
   image_picker: ^1.2.1
   google_mlkit_text_recognition: ^0.15.1
   image_cropper: ^12.2.1
